@@ -9,26 +9,11 @@ function runHet(ExpMode)
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 
-%% Function Settings
-
-  % nargin = 0;
-
 switch nargin,
     case 0
   ExpMode        =  0; % 0 = test mode, 1 = real experiment mode
   Screen('Preference', 'Verbosity', 1)
 end
-
-%% Screen Settings
-  ResInfo             = Screen('Resolution',0);
-  ScrRes              = [ResInfo.width ResInfo.height];
-  Dist2Scr            =   720;            % (mm)
-  HoriScrDist         =   400;            % (mm)
-  ScrHz               =   60;             % framerate of screen (frames/second)
-  ScrNum              =   0;              % SS: changed from 2 due to InitializeScreens crash
-  BGCol               =   [0 0 0];        % backgroundcolor
-  TextColors          =   {[255 255 255]};
-
 
 if ispc %% probably stimulus computer  %%% SS FIXME is this even true?
     % Get the subject number & block number
@@ -45,32 +30,40 @@ dirname=['het',subjNum];
 pathdata=strcat(pwd,filesep,'..',filesep,'DATA',filesep,dirname,filesep); 
 mkdir(pathdata);
 
-%%% Eventually will generate from predetermined stimulus parameter file
-%   This should be in a try-catch, and the error should say what it can't find or load or whatever.
-% if exist(calibFile,'file')
-%  load(calibFile);
-%end
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % Stimulus parameters %
 %%%%%%%%%%%%%%%%%%%%%%%
-% define colors
-black = [0 0 0];
+black = [  0   0   0];
 white = [255 255 255];   
-% length of lines in fixation cross
-fixationLength = 10;
-% set number of trials and blocks
+fixationLength = 10;  % length of lines in fixation cross
+tFixation = 0.500;  % 500 ms fixation cross display
+tDisplay  = 1.200;  % 200 ms stimulus display time
+tRTLimit  = 3.000;  % 3000ms response time limit
+tITI      = 0.300;  % 300 ms intertrial interval
+stimGenerationFile = 'allStimuli.txt';
 blocks = 1;
 numTrials = 5;
+%%% Eventually will generate from predetermined stimulus parameter file
+%   This should be in a try-catch, and the error should say what it can't find or load or whatever.
+if exist(stimGenerationFile,'file')
+  load(stimGenerationFile);
+else
+  Lcirs = [200 100 30; 200 400 40; 500 325 25; 100 500 50];
+  Rcirs = [200 100 70; 200 400 100; 500 325 50];
+end
 
-Lcircs = [200 100 10; 200 400 20; 500 325 5];
-Rcircs = [200 100 10; 200 400 20; 500 325 5];
-
-%%%%%%%%%%%%%%%%%%%%%%
-%   Timing variables %
-%%%%%%%%%%%%%%%%%%%%%%
-tFixation = 0.500;  % 500 ms fixation cross display
-tDisplay  = 0.200;  % 200ms stimulus display time
+%% Input/Output Device Settings
+% Display / Screen stuff
+ResInfo             = Screen('Resolution',0);
+ScrRes              = [ResInfo.width ResInfo.height];
+BGCol               = black;        % backgroundcolor
+TextColors          = {white};
+KbName('UnifyKeyNames');
+%% Feedback tones
+%chime = MakeBeep(600,.2);
+%wrongChime = MakeBeep(300,.2);
+% took too long -> play wrongchime twice
 
 try
 HideCursor;
@@ -78,8 +71,8 @@ HideCursor;
 WhichScreen=max(Screen('Screens'));
 oldVDLevel = Screen('Preference', 'VisualDebugLevel', 2);
 oldSkipSyncValue = Screen('Preference', 'SkipSyncTests', 1);
-[w, winRect] = Screen('OpenWindow',WhichScreen,[0 0 0]); %,[0 0 600 400]);
-%Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+[w, winRect] = Screen('OpenWindow',WhichScreen,BGCol);
+Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 [xCen, yCen] = RectCenter(winRect);
 
 %% Open a half-size offscreen window for pre-drawing Left & Right stimuli
@@ -87,20 +80,9 @@ HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal sid
 woff1 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 
-
-%%%%%%%%%%%%%%%%%%%%%%
-%    Exp. Variables  %
-%%%%%%%%%%%%%%%%%%%%%%
-%Chime sound
-chime = MakeBeep(600,.2);
-wrongChime = MakeBeep(300,.2);
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % Other pre-trial stuff %
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% Save experiment parameters for this block
-%save(strcat(pathdata,subjNum,'_Block',num2str(currBlock),'.mat'),'-mat');
 
 % Preallocate response variables
 choices = zeros(numTrials,1);  % 2AFC: Left = 1, Right = 2
@@ -109,113 +91,83 @@ RTs     = zeros(numTrials,1);  % reaction time (button press) in ms since stimul
 % Display Instructions
 %equneq_instructions(currBlock, w);
 % practice instructions, do practice trials, then expt instructions, expt trial blocks
+% Make them press a trial to start; that will call the KbCheck/KbName MEX files!
 
 % Main trial loop
 for i=1:numTrials
 
     % Draw fixation to indicate the start of the trial
     Screen('FillRect', w, black);
-    Screen('DrawLine', w, white, xCen - fixationLength, yCen, xCen + fixationLength, yCen);
-    Screen('DrawLine', w, white, xCen, yCen - fixationLength, xCen, yCen + fixationLength); 
-    Screen('Flip', w,[], 1);   % dontClear =1  %% Show fixation
-    WaitSecs(tFixation);  % SS FIXME do this properly!
-    i
-    Screen('FillRect', w, [255 0 0]);
-    Screen('Flip', w); 
-end %%%%%%%%%%%% fake end trial loop just for development
-    
-    
-%     % Draw target + distractors   %%%%%%%% <======== DRAW  TRIAL OBJECTS!
-%     for j = 1:numItems
-%         if (j == targetLocation(i))  % draw target
-%     	    Screen('DrawTexture', w, wOff, [], CenterRectOnPoint(woffrect, xLoc(j), yLoc(j)), targetOrient(i), [], [], white);
-%         else
-%     	    Screen('DrawTexture', w, wOff, [], CenterRectOnPoint(woffrect, xLoc(j), yLoc(j)), distractorOrient(i), [], [], colors(lureColor(i),:));
-%         end
-%     end
+    DrawFixation(w, fixationLength, xCen, yCen);
+    [~, tFixOnset] = Screen('Flip', w,[], 1);   % dontClear =1  %% Show fixation, mark its onset time
 
-%     Screen('Flip', w);   %%%%%%%%% <========== show the stimulus!
-%     % Mark the time when the display went up
-%     stimulus_onset_time = tic;    
+    % Prepare stimuli on our offscreen half-windows
+    Screen('FillRect', woff1, black); 
+    Screen('FillRect', woff2, black); 
+    Screen('DrawDots',woff1, Lcirs(:,1:2)', Lcirs(:,3),white,[],1); % Mac OSX OpenGL only! 1=cir, 2=circ++
+    Screen('DrawDots',woff2, Rcirs(:,1:2)', Rcirs(:,3),white,[],1); 
+    PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
+    DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
+    % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
+    [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
-% % %%%%%%%%%%%%%%%%%%%%%
-% % curImage=Screen('GetImage', w);  % store current window for later usage 
-% % fname = [expName num2str(i) '.jpg'];
-% % imwrite(curImage,fname,'jpg');
+    % curImage=Screen('GetImage', w);  % store current window for later usage 
+    % fname = [expName num2str(i) '.jpg'];
+    % imwrite(curImage,fname,'jpg');
 
-%     WaitSecs(tDelay);  % SS FIXME do this properly!
+    %%% Stimulus offset: Blank screen until response
+    Screen('FillRect', w, black);
+    [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
-%     Screen('FillRect', w, black);
-%     Screen('DrawLine', w, white, xCen - fixationLength, yCen, xCen + fixationLength, yCen);
-%     Screen('DrawLine', w, white, xCen, yCen - fixationLength, xCen, yCen + fixationLength); 
-%     Screen('Flip', w,[], 1);   % dontClear =1
-  
-%     rightAnswer = 2;
-   
-%     while (toc(stimulus_onset_time) < RTDeadline && ~exit)
-%       % Look for keypresses
-%       [keyIsDown, secs, keyCode]= KbCheck;
-%       key = KbName(keyCode);
-%       % z counts as a correct answer (target location number also works)
-%       if ((keyIsDown) && ( ((strcmp(key(1),'z'))) || ((strcmp(key(1),rightAnswer))) ))
-% 	reachedTo = targetLocation(i);
-% 	timeElapsed = toc(stimulus_onset_time);   
-% 	exit = 1;
-% 	% q quits experiment gracefully
-%       elseif ((keyIsDown)&& strcmp(key(1),'q'))
-% 	ShowCursor;
-% 	Screen('Preference', 'VisualDebugLevel', oldVDLevel);
-% 	Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-% 	Screen('CloseAll');
-% 	Snd('Close');
-% 	return;
-%       elseif (keyIsDown)  %% hit the wrong button
-% 	reachedTo = targetLocation(i) + 1;
-% 	timeElapsed = toc(stimulus_onset_time);
-% 	exit = 1;
-%       end
-%     end
-        	        
-%     % how much time since stimulus onset?
-%     SOT_data = [SOT_data;toc(stimulus_onset_time)];
-    
-%     end  %% end "stimulus is up, track until RT deadline"
+    % Wait around for Keypress. Keep this clean to have tight confidence on RT
+    exit_kb_loop = 0;
+    while (GetSecs-tStimulusOffset < tRTLimit) && ~exit_kb_loop
+      [keyIsDown, tKeypress, keyCode] = KbCheck;
+      key = KbName(keyCode);
+      if keyIsDown && ( strcmp(key(1),'h') || strcmp(key(1),'k') )
+	choices(i) = key(1);
+	RTs(i)     = tKeypress-tStimulusOnset;
+	exit_kb_loop = 1;
+      elseif keyIsDown && strcmp(key(1),'q')  % q quits experiment gracefully (doesn't save though!)
+	ShowCursor;
+	Screen('Preference', 'VisualDebugLevel', oldVDLevel);
+	Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
+	Screen('CloseAll');
+%	Snd('Close');
+        % shouldn't we close file handles also?
+	return;
+      elseif keyIsDown  %% hit the wrong button... unclear what to do! FIXME
+	choices(i) = key(1);
+	RTs(i)     = tKeypress-tStimulusOnset;
+	exit_kb_loop = 1;
+      end %%% if key... 
+    end %%% while (kb loop)
 
-%     %% End loop actions:
-%     % Record movement for an extra "extraMeasurementTime" seconds to get velocity profiles
-%     trialLoopEnd = tic;     % mark the time when the end loop begins
-%     end
+    if exit_kb_loop == 0  % Must have hit RT Limit; took too long.
+      RTs(i) = NaN;
+      choices(i) = NaN;
+    end
 
-%     %% Intertrial period: 
-%     %% Do post-trial tasks (saving to disk, auditory feedback, etc)
-%     %% Wait a defined amount of time.
-%     interTrialStart = tic;     % Mark the start of the intertrial period
-%     postTrialStuffDoneYet = 0;
-%     while toc(interTrialStart) < iti
-%         % q quits experiment gracefully
-%         [keyIsDown, ~, keyCode]= KbCheck;
-%         key = KbName(keyCode);
-%         if ((keyIsDown)&& strcmp(key(1),'q'))
-%             ShowCursor;
-%             Screen('Preference', 'VisualDebugLevel', oldVDLevel);
-%             Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-%             Screen('CloseAll');
-%             Snd('Close');
-%             return;
-%         end
+    %% Intertrial / Feedback period: 
+    %% Do post-trial tasks (saving to disk, auditory feedback, etc)
+    interTrialStart = tic;     % Mark the start of the intertrial period
+    postTrialStuffDoneYet = 0;
+    while toc(interTrialStart) < tITI       %% Wait a defined amount of time.
+        % q quits experiment gracefully
+        [keyIsDown, ~, keyCode]= KbCheck;
+        key = KbName(keyCode);
+        if keyIsDown && strcmp(key(1),'q')
+            ShowCursor;
+            Screen('Preference', 'VisualDebugLevel', oldVDLevel);
+            Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
+            Screen('CloseAll');
+%            Snd('Close');
+            return;
+        end
 
-%         if ~postTrialStuffDoneYet
-%             if (currBlock==0) || (currBlock==10)
-%                 Screen('Flip',w);
-%             else            
-%                 % 1. Put up a blank black screen
-%                 Screen('FillRect', w, black);
-%                 Screen('Flip',w);
-%             end
-
-%             % 2. Give real-time feedback in the form of sounds, record accuracy data
-
-%             if (reachedTo > 0)
+        if ~postTrialStuffDoneYet
+% 	  % 1. Give real-time feedback in the form of sounds, record accuracy data
+% 	  if choices(i) == %%%%%% HEREHEREHERE
 %                 if reachedTo == targetLocation(i)
 %                     acc(i) = 1;
 %                     Snd('Play',chime);                       
@@ -234,22 +186,23 @@ end %%%%%%%%%%%% fake end trial loop just for development
 %                 end                    
 %             end
 
-%             % Write this trial's data to exp. data file 
+%             % 2. Write this trial's data to exp. data file 
 %             dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'.txt'),...
 %                 [ i, reachedTo,timeElapsed, acc(i), targetLocation(i), trialType(i), lureColor(i), lureLocation(i), targetOrient(i), distractorOrient(i), graspCondition],'-append', 'roffset', [],'delimiter', '\t');
 
-%             %Record data for experimental parameters in .mat
-%             expdata.block(i) = currBlock;
-%             expdata.timeElapsed(i) = timeElapsed;
-%             expdata.reachedTo(i) = reachedTo;
-%             expdata.accuracy(i) = acc(i);
-%             expdata.trialType(i) = trialType(i);
-%             save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
-%             postTrialStuffDoneYet = 1; % all intertrial business is finished
-%         end  %% doing post-trial stuff
-%     end  %% waiting in ITI
+            % 3. Record data for experimental parameters in .mat
+            expdata.block(i) = currBlock;
+            expdata.trial(i) = i;
+            expdata.RTs(i) = RTs(i);
+            expdata.choices(i) = choices(i);
+%            expdata.accuracy(i) = acc(i);
+%            expdata.trialType(i) = trialType(i);
+            save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
+            postTrialStuffDoneYet = 1; % all intertrial business is finished
+        end  %% doing post-trial stuff
 
-% end  %% end "for i in 1:numTrials"
+    end  %% waiting in ITI
+end  %% main trial loop
 
  
 % Inform subjects that experiment is over, shutdown tracker
@@ -258,19 +211,20 @@ endDisplay = ['The block is over.\n\n'...
 DrawFormattedText(w, endDisplay, 'center', 'center', white);
 Screen('Flip', w);
 
-WaitSecs(5);
+WaitSecs(2);
 
 % Close the program
 ShowCursor;
 Screen('Preference', 'VisualDebugLevel', oldVDLevel);
 Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-Priority(0);
 Screen('CloseAll');
-Snd('Close');
+Priority(0);
+%Snd('Close');
 
 catch ME
+    display('Caught error; quitting gracefully.')
     Screen('CloseAll');
-    Snd('Close');
+ %   Snd('Close');
     ShowCursor;
     Priority(0);
     rethrow(ME);
