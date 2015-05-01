@@ -20,7 +20,6 @@ switch nargin,
 end
 
 %% Screen Settings
-
   Dist2Scr            =   720;            % (mm)
   HoriScrDist         =   400;            % (mm)
   ScrHz               =   60;             % framerate of screen (frames/second)
@@ -28,8 +27,6 @@ end
   BGCol               =   [0 0 0];        % backgroundcolor
   TextColors          =   {[255 255 255]};
 
-
-rand('state',sum(100*clock)); %%% SS FIXME what is this
 
 if ispc %% probably stimulus computer  %%% SS FIXME is this even true?
     % Get the subject number & block number
@@ -41,28 +38,23 @@ else  %% definitely not stimulus computer
     currBlock = 0;
 end
 
-
 %Create a directory for this subject's data
 dirname=['het',subjNum];
 mkdir(dirname);
 pathdata=strcat(pwd,filesep,'DATA',filesep,dirname,filesep); 
 
 %%% Eventually will generate from predetermined stimulus parameter file
+%   This should be in a try-catch, and the error should say what it can't find or load or whatever.
 % if exist(calibFile,'file')
 %  load(calibFile);
 %end
 
 % set number of trials and blocks
-if (currBlock == 0) || (currBlock == 10)
-    numTrials = 20;
-else
-    numTrials = 72;
-end
-if currBlock < 5  %% point in blocks 0 (practice), 1, 2, 3, 4
-    graspCondition = 0;
-else  %% grasp in blocks 10 (practice), 11, 12, 13, 14
-    graspCondition = 1;
-end
+numTrials = 5;
+
+Lcircs = [200 100 10; 200 400 20; 500 325 5];
+Rcircs = [200 100 10; 200 400 20; 500 325 5];
+
 
 try
 HideCursor;
@@ -76,22 +68,13 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 %%%%%%%%%%%%%%%%%%%%%%%
 % Stimulus parameters %
 %%%%%%%%%%%%%%%%%%%%%%%
-% which expt? (eg) orient POP only (0), or orient+colorLures (1)?
-colorLures = 0;   %%%% SS FIXME task variants
+% define colors
+black = [0 0 0];
+white = [255 255 255];   
 % length of lines in fixation cross
 fixationLength = 10;
-% radius of each object
-shapeRadius = 30;
-% distance of each object from fixation
-displayRadius = winRect(4)/2 - 3*shapeRadius;
 % Positions of each object
 numItems = 3;  % how many objects on each trial?
-obj1Angle = 180+30;  % angle (on imaginary circle) of object #1
-countCW = 1;  % count objects clockwise (1) or counterclockwise (0)
-%[xLoc, yLoc] = getRadialPositions(numItems,displayRadius,xCen, yCen, obj1Angle, countCW);
-%expName = ['chompoval' num2str(numItems) '_' strrep(num2str(objectRots),'  ','_')];
-
-
 
 %%%%%%%% Predraw Shapes Offscreen
 % For orientation task, make a white shape offscreen. Later use DrawTexture 
@@ -100,67 +83,34 @@ countCW = 1;  % count objects clockwise (1) or counterclockwise (0)
 [wOff, woffrect] = Screen('OpenOffscreenWindow',w, [0 0 0], [0 0 shapeRadius*6 shapeRadius*2]);
 Screen('FillOval', wOff, [255 255 255]); %%% circle
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%
 %    Exp. Variables  %
 %%%%%%%%%%%%%%%%%%%%%%
-
 %Chime sound
 chime = MakeBeep(600,.2);
 wrongChime = MakeBeep(300,.2);
 
-% define colors
-black = [0 0 0];
-white = [255 255 255];   
-
 midPoint = numTrials/2;  % midpoint of total trials
 
-%%%%%%% Assign Orientations
-% Assign target orientation for all trials, randomly intermixed
-% Distractor orientation is opposite of target orient for each trial
-% 0 = 0 degrees, 1 = 45 degree, -1 = -45 degree, 2 = 90 degree, etc
-targetOrient(1:midPoint)     = objectRots(1);
-distractorOrient(1:midPoint) = objectRots(2);
-targetOrient(midPoint+1:numTrials)     = objectRots(2);
-distractorOrient(midPoint+1:numTrials) = objectRots(1);
-[targetOrient, orientShuff] = Shuffle(targetOrient);
-distractorOrient = distractorOrient(orientShuff);
-% check that shuffling worked
-assert(all(distractorOrient ~= targetOrient), '%s: targets and distractors must have different orientations!',mfilename);
-%%%%%%%% SASEN! DO WE NEED TO GUARANTEE ANYTHING ABOUT TRIAL HISTORY?
-
-
-%%%%%%% Assign Target (& Lure) Location
-% set target and distractor locations for each trial.  For each trial, they are 
-% randomly chosen from 1:numItems without replacement
-temp = Shuffle(repmat(1:numItems, numTrials,1)');
-targetLocation = temp(1,:);
-lureLocation = temp(2,:);  % won't be used if ~colorLures
-%%%%%%%% SASEN! DO WE NEED TO GUARANTEE ANYTHING ABOUT TRIAL HISTORY?
 
 %%%%%%%%%%%%%%%%%%%%%%
 %   Timing variables %
 %%%%%%%%%%%%%%%%%%%%%%
-
-tDisplay = .2; % 200ms stimulus display time
-iti = 3; % How long to wait in between trials
+tFixation = 0.500;  % 500 ms fixation cross display
+tDisplay  = 0.200;  % 200ms stimulus display time
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % Other pre-trial stuff %
 %%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Save experiment parameters for this block
-save(strcat(pathdata,subjNum,'_Block',num2str(currBlock),'.mat'),'-mat');
+%save(strcat(pathdata,subjNum,'_Block',num2str(currBlock),'.mat'),'-mat');
 
-% Preallocate accuracy variable
-acc = zeros(numTrials,1);
+% Preallocate response variables
+choice = zeros(numTrials,1);  % 2AFC: Left = 1, Right = 2
 
-%Display Instructions
+% Display Instructions
 equneq_instructions(currBlock, w);
-
-% set old_frame to 1 (temp for first trial)
-old_frame = 1;
+% practice instructions, do practice trials, then expt instructions, expt trial blocks
 
 % Main trial loop
 for i=1:numTrials
@@ -284,17 +234,7 @@ for i=1:numTrials
                 end                    
             end
 
-            % Write this trial's data to two files - exp. data and
-            % tracker data
-            for x = 1:length(SOT_data)
-                dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'_tracker.txt'),...
-                    [currBlock,i,SOT_data(x),xy_data1(x),xy_data2(x),currXYZ_data1(x),currXYZ_data2(x),currXYZ_data3(x),currFrame_data(x)],'-append', 'roffset', [],'delimiter', '\t');
-                if graspCondition
-                    dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'_thumb.txt'),...
-                        [currBlock,i,SOT_data(x),thumbxy_data1(x),thumbxy_data2(x),thumbXYZ_data1(x),thumbXYZ_data2(x),thumbXYZ_data3(x),currFrame_data(x)],'-append', 'roffset', [],'delimiter', '\t');
-                end
-            end
-
+            % Write this trial's data to exp. data file 
             dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'.txt'),...
                 [ i, reachedTo,timeElapsed, acc(i), targetLocation(i), trialType(i), lureColor(i), lureLocation(i), targetOrient(i), distractorOrient(i), graspCondition],'-append', 'roffset', [],'delimiter', '\t');
 
@@ -303,13 +243,7 @@ for i=1:numTrials
             expdata.timeElapsed(i) = timeElapsed;
             expdata.reachedTo(i) = reachedTo;
             expdata.accuracy(i) = acc(i);
-            expdata.fingerXY{i} = curr_pixel_xy;
-            expdata.thumbXY{i} = thumb_pixel_xy;
-            expdata.targetLocation(i) = targetLocation(i);
             expdata.trialType(i) = trialType(i);
-            expdata.targetOrient(i) = targetOrient(i);
-            expdata.distractorOrient(i) = distractorOrient(i);
-            expdata.grasp(i) = graspCondition;
             save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
             postTrialStuffDoneYet = 1; % all intertrial business is finished
         end  %% doing post-trial stuff
@@ -341,3 +275,4 @@ catch ME
     rethrow(ME);
 end
     
+end
