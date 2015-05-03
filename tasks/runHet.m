@@ -60,7 +60,7 @@ else
 end
 % FIXME positions non-random; on a grid
 % 3x2 equally spaced for 6 items. 3x4 for 12 items
-load('type2_55_60.mat')
+load('type1_55_60.mat')
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -106,7 +106,7 @@ ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No 
 % Make them press a trial to start; that will call the KbCheck/KbName MEX files!
 
 % Main trial loop
-for i=1:numTrials
+for i=1:10% numTrials
 
     % Draw fixation to indicate the start of the trial
     Screen('FillRect', w, black);

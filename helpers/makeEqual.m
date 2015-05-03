@@ -1,5 +1,5 @@
 %should probably become a "makeEqual" function
-n = 12; m1 = 55, m2 = 60;
+n = 6; m1 = 55; m2 = 60;
 
 xx = linspace(1,640,3+1);
 xpos = xx(2:end) - diff(xx)/2;
@@ -62,6 +62,8 @@ for tr = 1:numTrials
     big = list2;
     lil = list1;
   end
+  assert(abs(mean(list1)-m1)<0.01,'%s: List 1 radius generation is broken.',mfilename)
+  assert(abs(mean(list2)-m2)<0.01,'%s: List 2 radius generation is broken.',mfilename)
 
   if strcmp(trialRightAnswers(tr),'l')
     Lcirs(:,:,tr) = [posList big];

@@ -29,27 +29,16 @@ areamean = pi*rmean^2;
 areatot = numItems * areamean;
 %assert(xyarea > areatot,'Too much circle for one rectangular hull!')  %% Make sure this is even possible!
 
+%% is this stuff even necessary? FIXME
 dev = 1.5*sqrt(rvar);
 rmin = rmean-dev; rmax = rmean + dev;  %% U[rmin, rmax]
 assert(rmin > minSize,'Cannot go that small.')
 assert(rmax < maxSize,'Cannot go that big.')
 candidateRs = rmin + (rmax - rmin).*rand(numCands,numItems); %% unif samples
 
-candstats = [mean(candidateRs'); var(candidateRs')]';
-desired = [rmean*ones(numCands,1) rvar*ones(numCands,1)];
-staterrors = abs(candstats - desired);
-
-usefulCands = candidateRs( (staterrors(:,1)< meantol_rough) & (staterrors(:,2)< vartol_rough), :);
-numUseful = size(usefulCands,1);
-if numUseful ==0
-  size(usefulCands);
-  return
+for ss = 1:numCands
+  zrad = zscore(candidateRs(ss,:));              % zscore them
+  setmat(ss,:) = zrad*sqrt(rvar) + rmean;   % scale to proper mean and variance
 end
 
-[sort(usefulCands')' mean(usefulCands')' var(usefulCands')']
-%hist(sort(usefulCands')',30)
-%%%% FIXME: need to actually play with one circle to make the means and variances fit better
-for i=1:numUseful
-end
-save(strcat('six',num2str(rmean),'.mat'),'usefulCands');
-setmat = usefulCands;
+save(strcat('six',num2str(rmean),'.mat'),'setmat');

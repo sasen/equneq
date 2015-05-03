@@ -1,5 +1,5 @@
 clear all;
-datafile = '../DATA/het888/eq12_55_60.mat';
+datafile = '../DATA/het888/888_TestBlock0_MATDATA.mat';
 load(datafile)
 
 varnames = fieldnames(expdata);
