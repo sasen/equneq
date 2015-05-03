@@ -3,7 +3,7 @@ function setmat = generateSet(numItems, rmean)
 % LIES------
 %function setmat = generateSet(numItems, rmean, rvar, hullrect)
 %numItems=6; rmean=55; 
-rvar=576; hullrect = [0 0 320 400];
+rvar=576; hullrect = [0 0 320 400];  %% SS FIXME: pass in from main
 % function setmat = generateSet(numItems, rmean, rvar, hullrect)
 % generateSet  Generates parameters for an ensemble of circles
 %   numItems (pos integer): number of items (circles) in the set

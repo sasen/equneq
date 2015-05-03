@@ -59,19 +59,8 @@ else
   trialRightAnswers = 'lrlrl'; % fake 5 trials
 end
 % FIXME positions non-random; on a grid
-% 3x2 equally spaced for 6 items.
-% xx = linspace(1,640,3+1);
-% xpos = xx(2:end) - diff(xx)/2; 
-% yy = linspace(1,400,2+1);
-% ypos = yy(2:end) - diff(yy)/2;
-% [allx,ally] = meshgrid(xpos,ypos);
-% posfor6 = [allx(:) ally(:)]
-% ypos2 = [ypos ypos+400];
-% [allx,ally2] = meshgrid(xpos,ypos2);
-% posfor12 = [allx(:) ally2(:)]
-% big = load('six75.mat');
-% lil = load('six55.mat');
-load('some12.mat')
+% 3x2 equally spaced for 6 items. 3x4 for 12 items
+load('type2_55_60.mat')
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -204,7 +193,9 @@ for i=1:numTrials
             expdata.RTs(i) = RTs(i);
             expdata.choices(i) = choices(i);
             expdata.ACCs(i) = ACCs(i);
-%            expdata.trialType(i) = trialType(i);
+            expdata.trialType(i) = trialType;
+	    expdata.Lmean(i) = Lmean(i);
+	    expdata.Rmean(i) = Rmean(i);
             save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
             postTrialStuffDoneYet = 1; % all intertrial business is finished
         end  %% doing post-trial stuff
