@@ -1,5 +1,9 @@
+function setmat = generateSet(numItems, rmean)
+% At the moment, this tries to generate a ton of such sets, 
+% LIES------
 %function setmat = generateSet(numItems, rmean, rvar, hullrect)
-numItems=6; rmean=55; rvar=576; hullrect = [0 0 320 400];
+%numItems=6; rmean=55; 
+rvar=576; hullrect = [0 0 320 400];
 % function setmat = generateSet(numItems, rmean, rvar, hullrect)
 % generateSet  Generates parameters for an ensemble of circles
 %   numItems (pos integer): number of items (circles) in the set
@@ -23,7 +27,7 @@ xyarea = xdist * ydist;  % total footprint we have to work with
 meanA = xyarea/numItems; % roughly divvy that up amongst the circles
 areamean = pi*rmean^2;
 areatot = numItems * areamean;
-assert(xyarea > areatot,'Too much circle for one rectangular hull!')  %% Make sure this is even possible!
+%assert(xyarea > areatot,'Too much circle for one rectangular hull!')  %% Make sure this is even possible!
 
 dev = 1.5*sqrt(rvar);
 rmin = rmean-dev; rmax = rmean + dev;  %% U[rmin, rmax]
@@ -36,7 +40,7 @@ desired = [rmean*ones(numCands,1) rvar*ones(numCands,1)];
 staterrors = abs(candstats - desired);
 
 usefulCands = candidateRs( (staterrors(:,1)< meantol_rough) & (staterrors(:,2)< vartol_rough), :);
-size(usefulCands,1) = numUseful;
+numUseful = size(usefulCands,1);
 if numUseful ==0
   size(usefulCands);
   return
@@ -44,5 +48,8 @@ end
 
 [sort(usefulCands')' mean(usefulCands')' var(usefulCands')']
 %hist(sort(usefulCands')',30)
-for i:numUseful
+%%%% FIXME: need to actually play with one circle to make the means and variances fit better
+for i=1:numUseful
 end
+save(strcat('six',num2str(rmean),'.mat'),'usefulCands');
+setmat = usefulCands;

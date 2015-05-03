@@ -58,6 +58,20 @@ else
   Rcirs = [200 100 70; 200 400 100; 500 325 50];
   trialRightAnswers = 'lrlrl'; % fake 5 trials
 end
+% FIXME positions non-random; on a grid
+% 3x2 equally spaced for 6 items.
+% xx = linspace(1,640,3+1);
+% xpos = xx(2:end) - diff(xx)/2; 
+% yy = linspace(1,400,2+1);
+% ypos = yy(2:end) - diff(yy)/2;
+% [allx,ally] = meshgrid(xpos,ypos);
+% posfor6 = [allx(:) ally(:)]
+% ypos2 = [ypos ypos+400];
+% [allx,ally2] = meshgrid(xpos,ypos2);
+% posfor12 = [allx(:) ally2(:)]
+% big = load('six75.mat');
+% lil = load('six55.mat');
+load('some12.mat')
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -113,8 +127,8 @@ for i=1:numTrials
     % Prepare stimuli on our offscreen half-windows
     Screen('FillRect', woff1, black); 
     Screen('FillRect', woff2, black); 
-    Screen('DrawDots',woff1, Lcirs(:,1:2)', Lcirs(:,3),white,[],1); % Mac OSX OpenGL only! 1=cir, 2=circ++
-    Screen('DrawDots',woff2, Rcirs(:,1:2)', Rcirs(:,3),white,[],1); 
+    Screen('DrawDots',woff1, Lcirs(:,1:2,i)', Lcirs(:,3,i),white,[],1); % Mac OSX OpenGL only! 1=cir, 2=circ++
+    Screen('DrawDots',woff2, Rcirs(:,1:2,i)', Rcirs(:,3,i),white,[],1); 
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
     DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
