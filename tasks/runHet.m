@@ -77,8 +77,8 @@ try
 HideCursor;
 % Initialize Screen
 WhichScreen=max(Screen('Screens'));
-oldVDLevel = Screen('Preference', 'VisualDebugLevel', 2);
-oldSkipSyncValue = Screen('Preference', 'SkipSyncTests', 1);
+shutdown.oldVDLevel = Screen('Preference', 'VisualDebugLevel', 2);
+shutdown.oldSkipSyncValue = Screen('Preference', 'SkipSyncTests', 1);
 [w, winRect] = Screen('OpenWindow',WhichScreen,BGCol);
 Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 [xCen, yCen] = RectCenter(winRect);
@@ -139,12 +139,7 @@ for i=1:numTrials
 	RTs(i)     = tKeypress-tStimulusOnset;
 	exit_kb_loop = 1;
       elseif keyIsDown && strcmp(key(1),keymap.quit)  % quits experiment gracefully (doesn't save though!)
-	ShowCursor;
-	Screen('Preference', 'VisualDebugLevel', oldVDLevel);
-	Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-	Screen('CloseAll');
-	PsychPortAudio('Close');
-        % shouldn't we close file handles also?
+	ShutdownNicely(shutdown);
 	return;
       elseif keyIsDown  %% hit the wrong button... unclear what to do! FIXME
 	choices(i) = key(1);
@@ -167,12 +162,8 @@ for i=1:numTrials
         [keyIsDown, ~, keyCode]= KbCheck;
         key = KbName(keyCode);
         if keyIsDown && strcmp(key(1),keymap.quit)
-            ShowCursor;
-            Screen('Preference', 'VisualDebugLevel', oldVDLevel);
-            Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-            Screen('CloseAll');
-	    PsychPortAudio('Close');
-            return;
+	  ShutdownNicely(shutdown);
+	  return;
         end
 
         if ~postTrialStuffDoneYet
@@ -208,27 +199,16 @@ for i=1:numTrials
 end  %% main trial loop
 
  
-% Inform subjects that experiment is over, shutdown tracker
+% Inform subjects that experiment is over, shutdown everything
 endDisplay = ['The block is over.\n\n'...
                 'Please inform the experimenter.'];
 DrawFormattedText(w, endDisplay, 'center', 'center', white);
 Screen('Flip', w);
-
 WaitSecs(2);
-
-% Close the program
-ShowCursor;
-Screen('Preference', 'VisualDebugLevel', oldVDLevel);
-Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
-Screen('CloseAll');
-Priority(0);
-PsychPortAudio('Close');
+ShutdownNicely(shutdown);  % Close the program
 
 catch ME
-    ShowCursor;
-    display('Caught error; quitting gracefully.')
-    Screen('CloseAll');
-    PsychPortAudio('Close');
-    Priority(0);
-    rethrow(ME);
+  display('Caught error; quitting gracefully.')
+  ShutdownNicely(shutdown)
+  rethrow(ME);
 end
