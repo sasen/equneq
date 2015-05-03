@@ -38,19 +38,25 @@ black = [  0   0   0];
 white = [255 255 255];   
 fixationLength = 10;  % length of lines in fixation cross
 tFixation = 0.500;  % 500 ms fixation cross display
-tDisplay  = 1.200;  % 200 ms stimulus display time
-tRTLimit  = 3.000;  % 3000ms response time limit
-tITI      = 0.300;  % 300 ms intertrial interval
+tDisplay  = 0.200;  % 200 ms stimulus display time
+tRTLimit  = 2.000;  % 2000ms response time limit
+tITI      = 0.500;  % 500 ms intertrial interval
+tFeedback = 0.400;  % 400 ms auditory feedback
+freqCorrect = 600;  % 600 Hz tone for correct response
+freqIncorrect = 300; % 300 Hz beep for incorrect & no (too-late) response
+keymap.l = 'h'; keymap.r = 'k';  % left and right response keys
+keymap.quit = 'q'; keymap.magic = 'z';  % q=quits. ( z="zoom!", mark as correct, dev-only!!)
 stimGenerationFile = 'allStimuli.txt';
 blocks = 1;
-numTrials = 5;
 %%% Eventually will generate from predetermined stimulus parameter file
 %   This should be in a try-catch, and the error should say what it can't find or load or whatever.
 if exist(stimGenerationFile,'file')
   load(stimGenerationFile);
 else
+  numTrials = 5;
   Lcirs = [200 100 30; 200 400 40; 500 325 25; 100 500 50];
   Rcirs = [200 100 70; 200 400 100; 500 325 50];
+  trialRightAnswers = 'lrlrl'; % fake 5 trials
 end
 
 %% Input/Output Device Settings
@@ -61,9 +67,11 @@ BGCol               = black;        % backgroundcolor
 TextColors          = {white};
 KbName('UnifyKeyNames');
 %% Feedback tones
-%chime = MakeBeep(600,.2);
-%wrongChime = MakeBeep(300,.2);
-% took too long -> play wrongchime twice
+InitializePsychSound;
+audiohandle = PsychPortAudio('Open');
+toneCorrect   = MakeTone(audiohandle, freqCorrect, tFeedback);       % pleasant tone
+toneIncorrect = MakeTone(audiohandle, freqIncorrect, tFeedback);     % annoying tone
+toneToolate   = MakeTone(audiohandle, freqIncorrect, tFeedback/2, 2);% fast, double annoying tone
 
 try
 HideCursor;
@@ -87,6 +95,7 @@ woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 % Preallocate response variables
 choices = zeros(numTrials,1);  % 2AFC: Left = 1, Right = 2
 RTs     = zeros(numTrials,1);  % reaction time (button press) in ms since stimulus onset
+ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
 
 % Display Instructions
 %equneq_instructions(currBlock, w);
@@ -120,20 +129,21 @@ for i=1:numTrials
     [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
     % Wait around for Keypress. Keep this clean to have tight confidence on RT
+    % FIXME: this whole block needs streamlining!
     exit_kb_loop = 0;
     while (GetSecs-tStimulusOffset < tRTLimit) && ~exit_kb_loop
       [keyIsDown, tKeypress, keyCode] = KbCheck;
       key = KbName(keyCode);
-      if keyIsDown && ( strcmp(key(1),'h') || strcmp(key(1),'k') )
+      if keyIsDown && ( strcmp(key(1),'h') || strcmp(key(1),'k') )  % FIXME: un-hardcode
 	choices(i) = key(1);
 	RTs(i)     = tKeypress-tStimulusOnset;
 	exit_kb_loop = 1;
-      elseif keyIsDown && strcmp(key(1),'q')  % q quits experiment gracefully (doesn't save though!)
+      elseif keyIsDown && strcmp(key(1),keymap.quit)  % quits experiment gracefully (doesn't save though!)
 	ShowCursor;
 	Screen('Preference', 'VisualDebugLevel', oldVDLevel);
 	Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
 	Screen('CloseAll');
-%	Snd('Close');
+	PsychPortAudio('Close');
         % shouldn't we close file handles also?
 	return;
       elseif keyIsDown  %% hit the wrong button... unclear what to do! FIXME
@@ -153,38 +163,30 @@ for i=1:numTrials
     interTrialStart = tic;     % Mark the start of the intertrial period
     postTrialStuffDoneYet = 0;
     while toc(interTrialStart) < tITI       %% Wait a defined amount of time.
-        % q quits experiment gracefully
+        % quits experiment gracefully if requested during ITI
         [keyIsDown, ~, keyCode]= KbCheck;
         key = KbName(keyCode);
-        if keyIsDown && strcmp(key(1),'q')
+        if keyIsDown && strcmp(key(1),keymap.quit)
             ShowCursor;
             Screen('Preference', 'VisualDebugLevel', oldVDLevel);
             Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
             Screen('CloseAll');
-%            Snd('Close');
+	    PsychPortAudio('Close');
             return;
         end
 
         if ~postTrialStuffDoneYet
-% 	  % 1. Give real-time feedback in the form of sounds, record accuracy data
-% 	  if choices(i) == %%%%%% HEREHEREHERE
-%                 if reachedTo == targetLocation(i)
-%                     acc(i) = 1;
-%                     Snd('Play',chime);                       
-%                 else
-%                     acc(i) = 0;
-%                     Snd('Play',wrongChime);
-%                 end
-%             else % If they never reached: analyze later & play double-beep
-%                 timeElapsed = 0;  % set timeelapsed as 0 for later analysis
-%                 acc(i) = 0;
-%                 % play a double beep to indicate time ran out
-%                 if reachedTo == 0
-% %                    Snd('Play',wrongChime);
-% %                    WaitSecs(.3);
-% %                    Snd('Play',wrongChime);
-%                 end                    
-%             end
+	  % 1. Give real-time feedback in the form of sounds, record accuracy data
+	  if choices(i) == keymap.(trialRightAnswers(i)) % response was right  %%%%%%% FIXME still wrong!
+	    PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
+            ACCs(i) = 1;
+	  elseif isnan(choices(i))  % didn't respond in time
+	    PsychPortAudio('FillBuffer', audiohandle,toneToolate); %% FIXME is this right for wrong buttons?
+	  else  % response was wrong.   %% FIXME this might be wrong still  % what about wrong button??
+	    PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
+            ACCs(i) = 0;
+	  end
+	  PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
 
 %             % 2. Write this trial's data to exp. data file 
 %             dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'.txt'),...
@@ -193,9 +195,10 @@ for i=1:numTrials
             % 3. Record data for experimental parameters in .mat
             expdata.block(i) = currBlock;
             expdata.trial(i) = i;
+            expdata.veridical(i) = trialRightAnswers(i);
             expdata.RTs(i) = RTs(i);
             expdata.choices(i) = choices(i);
-%            expdata.accuracy(i) = acc(i);
+            expdata.ACCs(i) = ACCs(i);
 %            expdata.trialType(i) = trialType(i);
             save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
             postTrialStuffDoneYet = 1; % all intertrial business is finished
@@ -219,13 +222,13 @@ Screen('Preference', 'VisualDebugLevel', oldVDLevel);
 Screen('Preference', 'SkipSyncTests', oldSkipSyncValue);
 Screen('CloseAll');
 Priority(0);
-%Snd('Close');
+PsychPortAudio('Close');
 
 catch ME
+    ShowCursor;
     display('Caught error; quitting gracefully.')
     Screen('CloseAll');
- %   Snd('Close');
-    ShowCursor;
+    PsychPortAudio('Close');
     Priority(0);
     rethrow(ME);
 end
