@@ -1,5 +1,8 @@
 *~
 helpers/*~
+helpers/*.mat
 tasks/*~
+tasks/*.mat
 analysis/*~
+analysis/*.mat
 DATA/*
