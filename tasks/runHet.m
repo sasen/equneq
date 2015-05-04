@@ -96,9 +96,9 @@ woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 % Other pre-trial stuff %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Preallocate response variables
-choices = zeros(numTrials,1);  % 2AFC: Left = 1, Right = 2
-RTs     = zeros(numTrials,1);  % reaction time (button press) in ms since stimulus onset
+% Preallocate 2AFC task response variables
+choices = cell(numTrials,1);   % record ANY keypress
+RTs     = nan(numTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
 ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
 
 % Display Instructions
@@ -132,56 +132,56 @@ for i=1:10% numTrials
     Screen('FillRect', w, black);
     [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
-    % Wait around for Keypress. Keep this clean to have tight confidence on RT
-    % FIXME: this whole block needs streamlining!
-    exit_kb_loop = 0;
-    while (GetSecs-tStimulusOffset < tRTLimit) && ~exit_kb_loop
+    % Get 2AFC response keypress. Keep this clean to have tight confidence on RT
+    keyIsDown = 0;
+    while (GetSecs-tStimulusOffset < tRTLimit) && ~keyIsDown  % exits at 1st keypress, or hitting time limit
       [keyIsDown, tKeypress, keyCode] = KbCheck;
-      key = KbName(keyCode);
-      if keyIsDown && ( strcmp(key(1),'h') || strcmp(key(1),'k') )  % FIXME: un-hardcode
-	choices(i) = key(1);
-	RTs(i)     = tKeypress-tStimulusOnset;
-	exit_kb_loop = 1;
-      elseif keyIsDown && strcmp(key(1),keymap.quit)  % quits experiment gracefully (doesn't save though!)
-	ShutdownNicely(shutdown);
-	return;
-      elseif keyIsDown  %% hit the wrong button... unclear what to do! FIXME
-	choices(i) = key(1);
-	RTs(i)     = tKeypress-tStimulusOnset;
-	exit_kb_loop = 1;
-      end %%% if key... 
-    end %%% while (kb loop)
-
-    if exit_kb_loop == 0  % Must have hit RT Limit; took too long.
-      RTs(i) = NaN;
-      choices(i) = NaN;
-    end
+      if keyIsDown
+	% quickly process keypress
+	key = KbName(keyCode);
+	if strcmp(key, keymap.quit)  % quits experiment gracefully (doesn't save though!)
+	  disp('quit from response period')
+	  ShutdownNicely(shutdown);
+	  return
+	else    % record key pressed and RT
+	  choices{i} = key;
+	  RTs(i)     = tKeypress - tStimulusOnset;
+	end  % if strcmp(key...)
+      end  % if keyisdown response period
+    end %%% while (kbcheck loop)
+    % Note: if subj took too long, choices{i} will be an empty cell and RTs(i) will be NaN
 
     %% Intertrial / Feedback period: 
     %% Do post-trial tasks (saving to disk, auditory feedback, etc)
     interTrialStart = tic;     % Mark the start of the intertrial period
     postTrialStuffDoneYet = 0;
     while toc(interTrialStart) < tITI       %% Wait a defined amount of time.
-        % quits experiment gracefully if requested during ITI
-        [keyIsDown, ~, keyCode]= KbCheck;
-        key = KbName(keyCode);
-        if keyIsDown && strcmp(key(1),keymap.quit)
+      [keyIsDown, ~, keyCode]= KbCheck;   % checking for quit requests during ITI
+      if keyIsDown
+	key = KbName(keyCode);
+	if strcmp(key, keymap.quit)  % quits experiment gracefully (doesn't save though!)
+	  disp('quit from intertrial interval')
 	  ShutdownNicely(shutdown);
-	  return;
-        end
+	  return
+	end
+      end  % if keyisdown ITI
 
-        if ~postTrialStuffDoneYet
-	  % 1. Give real-time feedback in the form of sounds, record accuracy data
-	  if choices(i) == keymap.(trialRightAnswers(i)) % response was right  %%%%%%% FIXME still wrong!
+      if ~postTrialStuffDoneYet
+	% 1. Give real-time feedback in the form of sounds, record accuracy data
+	if isnan(RTs(i))   % didn't respond in time  [we're characterizing response]
+	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);
+	elseif  strcmp(choices{i}, keymap.l) || strcmp(choices{i}, keymap.r)  % hit a valid key
+	  if strcmp(choices{i}, keymap.(trialRightAnswers(i))) % response was right
 	    PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
             ACCs(i) = 1;
-	  elseif isnan(choices(i))  % didn't respond in time
-	    PsychPortAudio('FillBuffer', audiohandle,toneToolate); %% FIXME is this right for wrong buttons?
-	  else  % response was wrong.   %% FIXME this might be wrong still  % what about wrong button??
+	  else      % response was the wrong side
 	    PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
             ACCs(i) = 0;
-	  end
-	  PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
+	  end  %-- if response was right
+	else  % hit an invalid key.  Note: ACCs(i) should stay NaN as initialized
+	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);  % FIXME: giving too-late feedback ok?
+	end  %-- isnan  (characterize response)
+	PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
 
 %             % 2. Write this trial's data to exp. data file 
 %             dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'.txt'),...
@@ -192,7 +192,7 @@ for i=1:10% numTrials
             expdata.trial(i) = i;
             expdata.veridical(i) = trialRightAnswers(i);
             expdata.RTs(i) = RTs(i);
-            expdata.choices(i) = choices(i);
+            expdata.choices{i} = choices{i};
             expdata.ACCs(i) = ACCs(i);
             expdata.trialType(i) = trialType;
 	    expdata.Lmean(i) = Lmean(i);
