@@ -1,5 +1,15 @@
-%should probably become a "makeEqual" function
-n = 6; m1 = 55; m2 = 60;
+function stimfilename = makeEqual(n,m1,m2)
+% function stimfilename = makeEqual(n,m1,m2)
+% makeEqual  Generates and saves pairs of stimuli for equal-type trials
+%  n (pos int): set-size for each side. only works for 6 or 12 right now
+%  m1, m2 (pos real): means 1 and 2 for the sets
+%  stimfilename (string): .mat filename to load in main experiment
+% Note: currently positions are on a grid, which is sad.
+
+%% FIXME: hey, why am I not taking all the radius-lists and displaying them on both sides, with
+%  positions scrambled? maybe even a few times on each side, scrambling positions. that would be cool
+%  for l/r bias arguments, or for split-half analysis. in which case, i should just generate the trials
+%  and shuffle them together.
 
 xx = linspace(1,640,3+1);
 xpos = xx(2:end) - diff(xx)/2;
@@ -10,12 +20,11 @@ posfor6 = [allx(:) ally(:)];
 ypos2 = [ypos ypos+400];
 [allx,ally2] = meshgrid(xpos,ypos2);
 posfor12 = [allx(:) ally2(:)];
-%[repmat(posfor6(1:2,:),2,1);repmat(posfor6(3:4,:),2,1);repmat(posfor6(5:6,:),2,1)] - posfor12
 
-% make <100 trials
+% make <=100 trials
 one = generateSet(n,m1);
 two = generateSet(n,m2);
-% trim blindly (ie, some trimmed ones might be easier to place onscreen)
+% trim blindly (some trimmed ones might be easier to place onscreen, oh well)
 numTrials = min(length(one),length(two));
 one = one(1:numTrials,:);
 two = two(1:numTrials,:);
