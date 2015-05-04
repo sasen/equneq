@@ -29,16 +29,17 @@ areamean = pi*rmean^2;
 areatot = numItems * areamean;
 %assert(xyarea > areatot,'Too much circle for one rectangular hull!')  %% Make sure this is even possible!
 
-%% is this stuff even necessary? FIXME
-dev = 1.5*sqrt(rvar);
-rmin = rmean-dev; rmax = rmean + dev;  %% U[rmin, rmax]
-assert(rmin > minSize,'Cannot go that small.')
-assert(rmax < maxSize,'Cannot go that big.')
-candidateRs = rmin + (rmax - rmin).*rand(numCands,numItems); %% unif samples
+candidateRs = minSize + (maxSize - minSize).*rand(numCands,numItems); %% unif samples
 
+setmat = [];
 for ss = 1:numCands
-  zrad = zscore(candidateRs(ss,:));              % zscore them
-  setmat(ss,:) = zrad*sqrt(rvar) + rmean;   % scale to proper mean and variance
+  rescaled = zscore(candidateRs(ss,:))*sqrt(rvar) + rmean;  % zscore them & rescale to proper mean & var
+  % only save if all items are within the acceptable range
+  if (min(rescaled) > minSize) & (max(rescaled) < maxSize)
+    setmat(end+1,:) = rescaled;
+  end
 end
 
-save(strcat('six',num2str(rmean),'.mat'),'setmat');
+%% FIXME
+%%% it would be nice to be able to ask for, say, 100 sets, and keep doing this until we get that many.
+%% or I can just do that by hand, whatever.

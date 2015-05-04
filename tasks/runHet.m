@@ -60,6 +60,7 @@ else
 end
 % FIXME positions non-random; on a grid
 % 3x2 equally spaced for 6 items. 3x4 for 12 items
+makeEqual
 load('type1_55_60.mat')
 
 %% Input/Output Device Settings

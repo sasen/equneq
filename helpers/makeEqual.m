@@ -12,9 +12,10 @@ ypos2 = [ypos ypos+400];
 posfor12 = [allx(:) ally2(:)];
 %[repmat(posfor6(1:2,:),2,1);repmat(posfor6(3:4,:),2,1);repmat(posfor6(5:6,:),2,1)] - posfor12
 
-% grab some sets (nominally) within tolerance; trim blindly
+% make <100 trials
 one = generateSet(n,m1);
 two = generateSet(n,m2);
+% trim blindly (ie, some trimmed ones might be easier to place onscreen)
 numTrials = min(length(one),length(two));
 one = one(1:numTrials,:);
 two = two(1:numTrials,:);
