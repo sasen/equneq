@@ -59,8 +59,9 @@ switch n
   trialType = NaN;  %% can't handle unequal yet
 end
 
-Lcirs = nan(n,3,numTrials);  Rcirs = nan(n,3,numTrials); 
-Lmean = nan(numTrials,1);    Rmean = nan(numTrials,1);
+trField = cell(numTrials,1);
+trials = struct('Lcirs',trField, 'Rcirs',trField, 'trialType',trField, 'trialRightAnswers',trField, ...
+		'Lmean',trField, 'Rmean',trField)
 for tr = 1:numTrials
   % who's actually bigger?
   list1 = one(tr,:)';
@@ -76,19 +77,21 @@ for tr = 1:numTrials
   assert(abs(mean(list2)-m2)<0.01,'%s: List 2 radius generation is broken.',mfilename)
 
   if strcmp(trialRightAnswers(tr),'l')
-    Lcirs(:,:,tr) = [posList big];
-    Rcirs(:,:,tr) = [posList lil];
-    Lmean(tr) = mean(big);
-    Rmean(tr) = mean(lil);
+    trials(tr).Lcirs(:,:) = [posList big];
+    trials(tr).Rcirs(:,:) = [posList lil];
+    trials(tr).Lmean = mean(big);
+    trials(tr).Rmean = mean(lil);
   elseif strcmp(trialRightAnswers(tr),'r')
-    Lcirs(:,:,tr) = [posList lil];
-    Rcirs(:,:,tr) = [posList big];
-    Lmean(tr) = mean(lil);
-    Rmean(tr) = mean(big);
+    trials(tr).Lcirs(:,:) = [posList lil];
+    trials(tr).Rcirs(:,:) = [posList big];
+    trials(tr).Lmean = mean(lil);
+    trials(tr).Rmean = mean(big);
   else
     error('%s: %s should be l or r.',mfilename,trialRightAnswers(tr))
   end  % strcmp trialRightAnswers(tr)
+  trials(tr).trialRightAnswers = trialRightAnswers(tr);
+  trials(tr).trialType = trialType;
 end  % for tr (trials)
 
 stimfilename = strcat('type',num2str(trialType),'_',num2str(m1),'_',num2str(m2),'.mat')
-save(stimfilename,'Lcirs','Rcirs','trialRightAnswers','trialType','numTrials','Lmean','Rmean');
+save(stimfilename,'trials','trialRightAnswers','trialType','numTrials');

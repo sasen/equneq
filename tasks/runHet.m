@@ -117,8 +117,8 @@ for i=1:10% numTrials
     % Prepare stimuli on our offscreen half-windows
     Screen('FillRect', woff1, black); 
     Screen('FillRect', woff2, black); 
-    Screen('DrawDots',woff1, Lcirs(:,1:2,i)', Lcirs(:,3,i),white,[],1); % Mac OSX OpenGL only! 1=cir, 2=circ++
-    Screen('DrawDots',woff2, Rcirs(:,1:2,i)', Rcirs(:,3,i),white,[],1); 
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),white,[],1); % 1=cir, 2=circ++
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),white,[],1); 
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
     DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
@@ -171,7 +171,7 @@ for i=1:10% numTrials
 	if isnan(RTs(i))   % didn't respond in time  [we're characterizing response]
 	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);
 	elseif  strcmp(choices{i}, keymap.l) || strcmp(choices{i}, keymap.r)  % hit a valid key
-	  if strcmp(choices{i}, keymap.(trialRightAnswers(i))) % response was right
+	  if strcmp(choices{i}, keymap.(trials(i).trialRightAnswers)) % response was right
 	    PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
             ACCs(i) = 1;
 	  else      % response was the wrong side
@@ -190,13 +190,13 @@ for i=1:10% numTrials
             % 3. Record data for experimental parameters in .mat
             expdata.block(i) = currBlock;
             expdata.trial(i) = i;
-            expdata.veridical(i) = trialRightAnswers(i);
+            expdata.veridical(i) = trials(i).trialRightAnswers;
             expdata.RTs(i) = RTs(i);
             expdata.choices{i} = choices{i};
             expdata.ACCs(i) = ACCs(i);
-            expdata.trialType(i) = trialType;
-	    expdata.Lmean(i) = Lmean(i);
-	    expdata.Rmean(i) = Rmean(i);
+            expdata.trialType(i) = trials(i).trialType;
+	    expdata.Lmean(i) = trials(i).Lmean;
+	    expdata.Rmean(i) = trials(i).Rmean;
             save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
             postTrialStuffDoneYet = 1; % all intertrial business is finished
         end  %% doing post-trial stuff
