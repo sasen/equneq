@@ -3,9 +3,10 @@ function [stimfilename, trials] = makeEqual(n,m1,m2,numTrials)
 % makeEqual  Makes eg 20 trials of 6_60/6_80, for m1=60, m2=80
 
 % this takes the place of positioner()
-xx = linspace(1,640,3+1);
+%xx = linspace(1,640,3+1);
+xx = linspace(100,550,3+1);
 xpos = xx(2:end) - diff(xx)/2;
-yy = linspace(1,400,2+1);
+yy = linspace(150,400,2+1);
 ypos = yy(2:end) - diff(yy)/2;
 [allx,ally] = meshgrid(xpos,ypos);
 pos{6} = [allx(:) ally(:)];
