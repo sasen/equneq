@@ -61,7 +61,7 @@ end
 % FIXME positions non-random; on a grid
 % 3x2 equally spaced for 6 items. 3x4 for 12 items
 %stimfile = makeEqual(6,75,62);
-stimfile = makeDiff(60,90);
+stimfile = makeSame(60,90);
 load(stimfile)
 
 %% Input/Output Device Settings

@@ -7,6 +7,7 @@ function [stimfilename, trials] = makeUnequal(n1,n2,m1,m2)
 %  trials (struct array)
 % Note: currently positions are on a grid, which is sad.
 
+% assert(n1 <= n2,'Can you try that again with  n1 <= n2, please?')  % maybe someday
 assert(n1 < n2,'Can you try that again with  n1 < n2, please?')
 
 %% FIXME: hey, why am I not taking all the radius-lists and displaying them on both sides, with
@@ -51,6 +52,13 @@ numTrials = min(length(one),length(two));
 one = one(1:numTrials,:);
 two = two(1:numTrials,:);
 
+
+eqTypeMod = 0;
+% % argh, not sure this is gonna work. just do separately for now
+% if n1==n2
+%   eqTypeMod = -2;
+% end
+
 if m1 > m2
   type3correct = 'l';
   type4correct = 'r';
@@ -65,9 +73,9 @@ end
 % assign to both type 3 and type 4 trials... TWICE each (reshuffled)
 % this will need to change when positioner works
 trField = cell(numTrials,2);
-trials3 = struct('Lcirs',trField, 'Rcirs',trField, 'trialType', 3, 'trialRightAnswers',type3correct, ...
+trials3 = struct('Lcirs',trField, 'Rcirs',trField, 'trialType', 3+eqTypeMod, 'trialRightAnswers',type3correct, ...
 		'Lmean',m1, 'Rmean',m2);
-trials4 = struct('Lcirs',trField, 'Rcirs',trField, 'trialType', 4, 'trialRightAnswers',type4correct, ...
+trials4 = struct('Lcirs',trField, 'Rcirs',trField, 'trialType', 4+eqTypeMod, 'trialRightAnswers',type4correct, ...
 		'Lmean',m2, 'Rmean',m1);
 for tr = 1:numTrials
   set1 = [pos{n1} one(tr,:)'];
