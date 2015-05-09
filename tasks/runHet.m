@@ -1,19 +1,27 @@
-function runHet(ExpMode)
+function runHet(cond)
 % RUNHET   Run heterogeneous ensembles experiment
 %   Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
-%   ExpMode: 0 = test mode, 1 = real experiment mode
-
+%   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
 %% Experiment description
 %
 % Two ensembles of filled circles, to L and R of fixation. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 
-switch nargin,
-    case 0
-  ExpMode        =  0; % 0 = test mode, 1 = real experiment mode
-  Screen('Preference', 'Verbosity', 1)
+stimfile = 'all_60_70.mat';
+load(stimfile)
+
+switch cond
+ case 's'
+  trials = sTr;
+ case 'd'
+  trials = dTr;
+ case 'm'
+  trials = mTr;
+ otherwise
+  error('%s: Condition %s not understood.',mfilename,cond)
 end
+numTrials = length(trials);
 
 if ispc %% probably stimulus computer  %%% SS FIXME is this even true?
     % Get the subject number & block number
@@ -23,6 +31,7 @@ if ispc %% probably stimulus computer  %%% SS FIXME is this even true?
 else  %% definitely not stimulus computer
     subjNum = '888';    
     currBlock = 0;
+    Screen('Preference', 'Verbosity', 1)
 end
 
 %Create a directory for this subject's data
@@ -45,7 +54,8 @@ tFeedback = 0.400;  % 400 ms auditory feedback
 freqCorrect = 600;  % 600 Hz tone for correct response
 freqIncorrect = 300; % 300 Hz beep for incorrect & no (too-late) response
 keymap.l = 'h'; keymap.r = 'k';  % left and right response keys
-keymap.quit = 'q'; keymap.magic = 'z';  % q=quits. ( z="zoom!", mark as correct, dev-only!!)
+keymap.quit = 'q';  % q=quits.
+% keymap.magic = 'z';  % z="zoom!", mark as correct, dev-only!! (not implemented)
 stimGenerationFile = 'allStimuli.txt';
 blocks = 1;
 %%% Eventually will generate from predetermined stimulus parameter file
@@ -60,9 +70,6 @@ else
 end
 % FIXME positions non-random; on a grid
 % 3x2 equally spaced for 6 items. 3x4 for 12 items
-%stimfile = makeEqual(6,75,62);
-stimfile = makeMix(60,75);
-load(stimfile)
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -97,7 +104,13 @@ woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 % Other pre-trial stuff %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
+% FIXME should we be able to restart blocks?
+% avoid overwriting! use time string in filename
+datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(now,'HH_MM_SS'));
+
 % Preallocate 2AFC task response variables
+%% FIXME numTrials is BS
+numTrials = 20;
 choices = cell(numTrials,1);   % record ANY keypress
 RTs     = nan(numTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
 ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
@@ -108,7 +121,7 @@ ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No 
 % Make them press a trial to start; that will call the KbCheck/KbName MEX files!
 
 % Main trial loop
-for i=1:20% numTrials
+for i=1: numTrials
 
     % Draw fixation to indicate the start of the trial
     Screen('FillRect', w, black);
@@ -184,11 +197,8 @@ for i=1:20% numTrials
 	end  %-- isnan  (characterize response)
 	PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
 
-%             % 2. Write this trial's data to exp. data file 
-%             dlmwrite(strcat(pathdata,subjNum,'_','TestBlock',num2str(currBlock),'.txt'),...
-%                 [ i, reachedTo,timeElapsed, acc(i), targetLocation(i), trialType(i), lureColor(i), lureLocation(i), targetOrient(i), distractorOrient(i), graspCondition],'-append', 'roffset', [],'delimiter', '\t');
-
             % 3. Record data for experimental parameters in .mat
+	    %% FIXME: maybe these should be preallocated!!
             expdata.block(i) = currBlock;
             expdata.trial(i) = i;
             expdata.veridical(i) = trials(i).trialRightAnswers;
@@ -198,7 +208,8 @@ for i=1:20% numTrials
             expdata.trialType(i) = trials(i).trialType;
 	    expdata.Lmean(i) = trials(i).Lmean;
 	    expdata.Rmean(i) = trials(i).Rmean;
-            save(strcat(pathdata,subjNum,'_TestBlock', num2str(currBlock),'_MATDATA'), 'expdata');  
+            save(datafile, 'expdata');  
+
             postTrialStuffDoneYet = 1; % all intertrial business is finished
         end  %% doing post-trial stuff
 
