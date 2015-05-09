@@ -1,6 +1,6 @@
-function [stimfilename, trials] = makeEqual(n,m1,m2)
-% function [stimfilename, trials] = makeEqual(n,m1,m2)
-% makeEqual  Makes eg 6_60/6_80, for m1=60, m2=80
+function [stimfilename, trials] = makeEqual(n,m1,m2,numTrials)
+% function [stimfilename, trials] = makeEqual(n,m1,m2,numTrials)
+% makeEqual  Makes eg 20 trials of 6_60/6_80, for m1=60, m2=80
 
 % this takes the place of positioner()
 xx = linspace(1,640,3+1);
@@ -15,13 +15,8 @@ pos{12} = [allx(:) ally2(:)];
 
 trialType = round(n/6);
 
-% make <=100 trials
-one = generateSet(n,m1);
-two = generateSet(n,m2);
-% trim blindly (some trimmed ones might be easier to place onscreen, oh well)
-numTrials = min(length(one),length(two));
-one = one(1:numTrials,:);
-two = two(1:numTrials,:);
+one = generateSet(n,m1,numTrials);
+two = generateSet(n,m2,numTrials);
 
 if m1 > m2
   correct = 'l';
@@ -49,4 +44,4 @@ end  % for tr (trials)
 trials = shuffle([trials(:)]);
 
 stimfilename = strcat('type',num2str(trialType),'_',num2str(m1),'_',num2str(m2),'.mat')
-save(stimfilename,'trials','numTrials');  % numTrials is a lie, mult by 2? FIXME
+save(stimfilename,'trials');

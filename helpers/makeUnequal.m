@@ -1,8 +1,9 @@
-function [stimfilename, trials] = makeUnequal(n1,n2,m1,m2)
+function [stimfilename, trials] = makeUnequal(n1,n2,m1,m2,numTrials)
 % function stimfilename = makeUnequal(6,12,m1,m2)
 % makeUnequal  Generates and saves pairs of stimuli for unequal-type trials
 %  n1,n2 (pos int): set-size for each side. only works for n1=6, n2=12 now
 %  m1, m2 (pos real): means 1 and 2 for the sets.
+%  numTrials (pos int): how many unique trials to make
 %  stimfilename (string): .mat filename to load in main experiment
 %  trials (struct array)
 % Note: currently positions are on a grid, which is sad.
@@ -44,14 +45,8 @@ ypos2 = [ypos ypos+400];
 [allx,ally2] = meshgrid(xpos,ypos2);
 pos{12} = [allx(:) ally2(:)];
 
-% make <=100 trials
-one = generateSet(n1,m1);
-two = generateSet(n2,m2);
-% trim blindly (some trimmed ones might be easier to place onscreen, oh well)
-numTrials = min(length(one),length(two));
-one = one(1:numTrials,:);
-two = two(1:numTrials,:);
-
+one = generateSet(n1,m1,numTrials);
+two = generateSet(n2,m2,numTrials);
 
 eqTypeMod = 0;
 % % argh, not sure this is gonna work. just do separately for now
@@ -94,4 +89,4 @@ end  % for tr (trials)
 trials = shuffle([trials3(:); trials4(:)]);
 
 stimfilename = strcat('type3and4_',num2str(m1),'_',num2str(m2),'.mat')
-save(stimfilename,'trials','numTrials');  % numTrials is a lie, mult by 2? FIXME
+save(stimfilename,'trials');
