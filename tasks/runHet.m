@@ -9,8 +9,8 @@ function runHet(cond)
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==1,'Exactly one argument, the condition code, is required.')
 
-%stimfile = 'type1_90_110.mat';
-stimfile = 'all_60_65.mat';
+stimfile = 'type2_66_77.mat';
+%stimfile = 'all_60_65.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
