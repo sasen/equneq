@@ -7,8 +7,10 @@ function runHet(cond)
 % Two ensembles of filled circles, to L and R of fixation. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
+assert(nargin==1,'Exactly one argument, the condition code, is required.')
 
-stimfile = 'type1_90_110.mat';
+%stimfile = 'type1_90_110.mat';
+stimfile = 'all_60_65.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -48,7 +50,7 @@ black = [  0   0   0];
 white = [255 255 255];   
 fixationLength = 10;  % length of lines in fixation cross
 tFixation = 0.500;  % 500 ms fixation cross display
-tDisplay  = 2.200;  % 200 ms stimulus display time
+tDisplay  = 5.200;  % 200 ms stimulus display time
 tRTLimit  = 2.000;  % 2000ms response time limit
 tITI      = 0.500;  % 500 ms intertrial interval
 tFeedback = 0.400;  % 400 ms auditory feedback
@@ -111,7 +113,7 @@ datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(n
 
 % Preallocate 2AFC task response variables
 %% FIXME numTrials is BS
-numTrials = 1%20;
+numTrials = 20;
 choices = cell(numTrials,1);   % record ANY keypress
 RTs     = nan(numTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
 ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
