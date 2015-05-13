@@ -9,8 +9,9 @@ function runHet(cond)
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==1,'Exactly one argument, the condition code, is required.')
 
-stimfile = 'type2_66_77.mat';
-%stimfile = 'all_60_65.mat';
+%stimfile = 'type3and4_66_77.mat';
+%stimfile = 'type2_66_77.mat';
+stimfile = 'all_66_88.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -50,7 +51,7 @@ black = [  0   0   0];
 white = [255 255 255];   
 fixationLength = 10;  % length of lines in fixation cross
 tFixation = 0.500;  % 500 ms fixation cross display
-tDisplay  = 5.200;  % 200 ms stimulus display time
+tDisplay  = 0.200;  % 200 ms stimulus display time
 tRTLimit  = 2.000;  % 2000ms response time limit
 tITI      = 0.500;  % 500 ms intertrial interval
 tFeedback = 0.400;  % 400 ms auditory feedback

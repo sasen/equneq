@@ -34,16 +34,8 @@ assert(n1 < n2,'Can you try that again with  n1 < n2, please?')
 % 6_60 / 12_80
 % 12_80 / 6_60
 
-% this takes the place of positioner()
-xx = linspace(1,640,3+1);
-xpos = xx(2:end) - diff(xx)/2;
-yy = linspace(1,400,2+1);
-ypos = yy(2:end) - diff(yy)/2;
-[allx,ally] = meshgrid(xpos,ypos);
-pos{6} = [allx(:) ally(:)];
-ypos2 = [ypos ypos+400];
-[allx,ally2] = meshgrid(xpos,ypos2);
-pos{12} = [allx(:) ally2(:)];
+pos{n1} = fixedPositions(n1); % get positions (pos is a cell array to accomodate unequal trials)
+pos{n2} = fixedPositions(n2);
 
 one = generateSet(n1,m1,numTrials);
 two = generateSet(n2,m2,numTrials);
