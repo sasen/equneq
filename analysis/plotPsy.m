@@ -1,13 +1,20 @@
-function psymat = plotPsy(subjCode)
-dirname = strcat(['../DATA/het',subjCode,'/'])
-sDir = what(dirname)
-fnames = sDir.mat
-%fnames =  ...
-%['d0_888_time16_20_00.mat'; ...
-% 'm0_888_time16_29_45.mat'; ...
-% 's0_888_time16_36_58.mat'];
+function [afcmat,accmat, mRTmat, curvTrials] = plotPsy(subjCode,mStandard,nPairs)
+% function [afcmat,accmat, mRTmat, curvTrials] = plotPsy(subjCode,mStandard,nPairs)
+% eg [afc,acc,~,~] = plotPsy('s17',128,1)
 
-load('allStimuli128_1.mat'); % all trials and parameters
+switch nargin
+ case 0
+  error('%s Give at least the subject code.',mfilename)
+ case 1
+  mStandard = 128;
+  nPairs = 7;
+end
+
+stimFname = strcat('allStimuli',num2str(mStandard),'_',num2str(nPairs),'.mat');
+load(stimFname); % all trials and parameters
+dirname = strcat(['../DATA/het',subjCode,'/']);
+sDir = what(dirname);
+fnames = sDir.mat;
 
 curvTrials = cell(nTicks,nCurves);  % store trial numbers of each tick by curve type
 accmat = nan(nTicks,nCurves);  % [0,1] accuracy data over psy ticks
@@ -16,12 +23,12 @@ mRTmat = nan(nTicks,nCurves);  % mean RT data over psy ticks
 % would be good to record std and number of trials responded to (with l or r)
 
 for cond = 1:length(fnames) 
-datafile = strcat([dirname, fnames{cond,:}])
+datafile = strcat([dirname, fnames{cond,:}]);
 load(datafile,'expdata');
 
 cType = expdata.trialType; % get curveType for each trial
 nTr = length(cType);  % number of trials in datafile
-types = sort(unique(cType))  % which trialTypes are present here
+types = sort(unique(cType));  % which trialTypes are present here
 if length(types) == 4
   cType = cType + 4;   % mixed blocks will have 5=6/6, 6=12/12, 7=6/12, 8=12/6
   types = types + 4;
@@ -38,7 +45,7 @@ end
 
 % data for each curve
 for i = 1:length(types)
-  curv = types(i)
+  curv = types(i);
   for tk = 1:nTicks
     trList = find(cType==curv & tickNums'==tk);
     curvTrials{tk,curv} = trList;  % list of trials belonging to this tick
