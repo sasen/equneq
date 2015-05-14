@@ -1,4 +1,4 @@
-function runHet(cond)
+function datafile = runHet(cond)
 % RUNHET   Run heterogeneous ensembles experiment
 %   Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
 %   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
@@ -11,7 +11,8 @@ assert(nargin==1,'Exactly one argument, the condition code, is required.')
 
 %stimfile = 'type3and4_66_77.mat';
 %stimfile = 'type2_66_77.mat';
-stimfile = 'all_66_88.mat';
+%stimfile = 'all_66_88.mat';
+stimfile = 'allStimuli.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -60,6 +61,7 @@ freqIncorrect = 300; % 300 Hz beep for incorrect & no (too-late) response
 keymap.l = 'h'; keymap.r = 'k';  % left and right response keys
 keymap.quit = 'q';  % q=quits.
 % keymap.magic = 'z';  % z="zoom!", mark as correct, dev-only!! (not implemented)
+meanEqualCode = 'x';  % when neither 'l' nor 'r' is right because means are equal!
 stimGenerationFile = 'allStimuli.txt';
 blocks = 1;
 %%% Eventually will generate from predetermined stimulus parameter file
@@ -113,9 +115,9 @@ woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(now,'HH_MM_SS'));
 
 % Preallocate 2AFC task response variables
-%% FIXME numTrials is BS
-numTrials = 20;
+numTrials = length(trials);  % FIXME: this needs to be blocked!!
 choices = cell(numTrials,1);   % record ANY keypress
+afcL    = nan(numTrials,1);    % chose left in 2afc
 RTs     = nan(numTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
 ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
 
@@ -163,6 +165,7 @@ for i=1: numTrials
 	  return
 	else    % record key pressed and RT
 	  choices{i} = key;
+	  afcL(i)    = strcmp(key, keymap.l); % did they press L?
 	  RTs(i)     = tKeypress - tStimulusOnset;
 	end  % if strcmp(key...)
       end  % if keyisdown response period
@@ -188,6 +191,17 @@ for i=1: numTrials
 	% 1. Give real-time feedback in the form of sounds, record accuracy data
 	if isnan(RTs(i))   % didn't respond in time  [we're characterizing response]
 	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);
+	elseif strcmp( trials(i).trialRightAnswers, meanEqualCode );  % trial has no right/wrong ans
+	  % the means are actually equal. flip a coin to call it right or wrong
+	  % note: accuracy is a lie here, but it saves WHAT WE TOLD THE SUBJECT!!
+	  % FIXME: ideally, this would be standard for all subjects!!
+	  if round(rand)  % coinflip = 1; call it right
+            PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
+            ACCs(i) = 1;
+	  else  % call it wrong
+	    PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
+            ACCs(i) = 0;
+	  end  % if coin flip
 	elseif  strcmp(choices{i}, keymap.l) || strcmp(choices{i}, keymap.r)  % hit a valid key
 	  if strcmp(choices{i}, keymap.(trials(i).trialRightAnswers)) % response was right
 	    PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
@@ -208,6 +222,7 @@ for i=1: numTrials
             expdata.veridical(i) = trials(i).trialRightAnswers;
             expdata.RTs(i) = RTs(i);
             expdata.choices{i} = choices{i};
+	    expdata.afcL(i) = afcL(i);
             expdata.ACCs(i) = ACCs(i);
             expdata.trialType(i) = trials(i).trialType;
 	    expdata.Lmean(i) = trials(i).Lmean;

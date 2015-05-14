@@ -17,7 +17,7 @@ else % m1 == m2; unclear what to say %% FIXME?
 end
 
 % assign TWICE each (reshuffled)
-% this will need to change when positioner works
+% this will need to change if positions are not fixed
 trField = cell(numTrials,2);
 trials = struct('Lcirs',trField, 'Rcirs',trField, 'trialType', trialType, 'trialRightAnswers',correct, ...
 		'Lmean',m1, 'Rmean',m2);
