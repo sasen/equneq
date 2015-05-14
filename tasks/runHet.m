@@ -9,10 +9,7 @@ function datafile = runHet(cond)
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==1,'Exactly one argument, the condition code, is required.')
 
-%stimfile = 'type3and4_66_77.mat';
-%stimfile = 'type2_66_77.mat';
-%stimfile = 'all_66_88.mat';
-stimfile = 'allStimuli.mat';
+stimfile = 'allStimuli128_1.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -26,23 +23,61 @@ switch cond
   error('%s: Condition %s not understood.',mfilename,cond)
 end
 end
-numTrials = length(trials);
 
-if ispc %% probably stimulus computer  %%% SS FIXME is this even true?
-    % Get the subject number & block number
-    subjNum = input('\n Enter subject #:','s');
-    currBlock = str2double(input('\n Block # (0=Prac):', 's')); %% SS FIXME
-%    Priority(2);  %% SS FIXME is this still needed?
-else  %% definitely not stimulus computer
-    subjNum = '888';    
-    currBlock = 0;
-    Screen('Preference', 'Verbosity', 1)
-end
+subjNum = input('\n Enter subject code:','s');
+assert(length(subjNum)==3,'%s: only 3 chars please.',mfilename)
 
-%Create a directory for this subject's data
+% Create a directory for this subject's data
 dirname=['het',subjNum];
 pathdata=strcat(pwd,filesep,'..',filesep,'DATA',filesep,dirname,filesep); 
-mkdir(pathdata);
+currBlock = 0; % this is a pain to expand
+
+% Has this subject started this condition yet?
+if exist(pathdata,'dir')
+  subjFiles = what(pathdata);
+  fIndex = find(strncmp(cond,subjFiles.mat,1));  % find the index for this condition
+else
+  mkdir(pathdata);
+  fIndex = [];
+end
+
+% Allow restarting blocks (conds)
+% Try to open the file for this condition if it exists; if not, make a new one!
+switch length(fIndex==0)
+ case 0
+  % avoid overwriting! use time string in filename
+  datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(now,'HH_MM_SS'));
+  doneTrials = 0;
+  % Preallocate 2AFC task response variables
+  totTrials = length(trials);  % FIXME: this needs to be blocked!!
+  choices = cell(totTrials,1);   % record ANY keypress
+  afcL    = nan(totTrials,1);    % chose left in 2afc
+  RTs     = nan(totTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
+  ACCs    = nan(totTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
+  expdata.block     = zeros(totTrials,1); % this is just to preallocate the expdata structure array too.
+  expdata.trial     = nan(totTrials,1);
+  expdata.veridical = [trials.trialRightAnswers];
+  expdata.RTs       = RTs;
+  expdata.choices   = choices;
+  expdata.afcL      = nan(totTrials,1);
+  expdata.ACCs      = ACCs;
+  expdata.trialType = [trials.trialType];
+  expdata.Lmean     = [trials.Lmean]; 
+  expdata.Rmean     = [trials.Rmean];
+
+ case 1   % found file already
+  datafile = strcat(pathdata, subjFiles.mat{fIndex});
+  load(datafile);
+  doneTrials = nanmax(expdata.trial);   % how far have we progressed?
+  % load the vectors we need
+  choices = expdata.choices;
+  afcL    = expdata.afcL;
+  RTs     = expdata.RTs;
+  ACCs    = expdata.ACCs;
+
+ otherwise  % can't figure out which file it is
+  error('%s too many matching files! cond %s, dir %s',mfilename,cond,pathdata)
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -62,20 +97,8 @@ keymap.l = 'h'; keymap.r = 'k';  % left and right response keys
 keymap.quit = 'q';  % q=quits.
 % keymap.magic = 'z';  % z="zoom!", mark as correct, dev-only!! (not implemented)
 meanEqualCode = 'x';  % when neither 'l' nor 'r' is right because means are equal!
-stimGenerationFile = 'allStimuli.txt';
-blocks = 1;
-%%% Eventually will generate from predetermined stimulus parameter file
-%   This should be in a try-catch, and the error should say what it can't find or load or whatever.
-if exist(stimGenerationFile,'file')
-  load(stimGenerationFile);
-else
-  numTrials = 5;
-  Lcirs = [200 100 30; 200 400 40; 500 325 25; 100 500 50];
-  Rcirs = [200 100 70; 200 400 100; 500 325 50];
-  trialRightAnswers = 'lrlrl'; % fake 5 trials
-end
-% FIXME positions non-random; on a grid
-% 3x2 equally spaced for 6 items. 3x4 for 12 items
+maxTrials = 42;  % upto 42 trials per block!
+numTrials = min([ (length(trials)-doneTrials), maxTrials]);  % trials to do this time
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -110,24 +133,13 @@ woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 % Other pre-trial stuff %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-% FIXME should we be able to restart blocks?
-% avoid overwriting! use time string in filename
-datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(now,'HH_MM_SS'));
-
-% Preallocate 2AFC task response variables
-numTrials = length(trials);  % FIXME: this needs to be blocked!!
-choices = cell(numTrials,1);   % record ANY keypress
-afcL    = nan(numTrials,1);    % chose left in 2afc
-RTs     = nan(numTrials,1);    % reaction time (ANY button press) in ms since stimulus onset
-ACCs    = nan(numTrials,1);    % 2AFC: accuracy, Correct = 1, Incorrect = 0, No response/wrong key = NaN.
-
 % Display Instructions
 %equneq_instructions(currBlock, w);
 % practice instructions, do practice trials, then expt instructions, expt trial blocks
 % Make them press a trial to start; that will call the KbCheck/KbName MEX files!
 
 % Main trial loop
-for i=1: numTrials
+for i = doneTrials+1 : doneTrials+numTrials
 
     % Draw fixation to indicate the start of the trial
     Screen('FillRect', w, black);

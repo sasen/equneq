@@ -7,7 +7,7 @@ function [stimfilename, sTr, dTr, mTr] = makeAll(mStandard,debug)
 %  sTr,dTr,mTr (struct array): same/diff/mixed trials (full conditions!)
 
 if debug
-  nPairs = 1;
+  nPairs = 3;
 else
   nPairs = 7;
 end
@@ -38,5 +38,5 @@ end
 sTr = shuffle(sAll);
 dTr = shuffle(dAll);
 mTr = shuffle(mAll);
-stimfilename = strcat('allStimuli','.mat')
+stimfilename = strcat('allStimuli',num2str(mStandard),'_',num2str(nPairs),'.mat')
 save(stimfilename)
