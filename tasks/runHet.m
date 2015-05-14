@@ -1,4 +1,4 @@
-function datafile = runHet(cond)
+function datafile = runHet(cond,subjCode)
 % RUNHET   Run heterogeneous ensembles experiment
 %   Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
 %   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
@@ -7,9 +7,11 @@ function datafile = runHet(cond)
 % Two ensembles of filled circles, to L and R of fixation. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
-assert(nargin==1,'Exactly one argument, the condition code, is required.')
+assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
+assert(length(subjCode)==3,'subjCode must be 3 characters long.')
+assert(ischar(subjCode),'Put that subjCode in single quotes!')
 
-stimfile = 'allStimuli128_1.mat';
+stimfile = 'allStimuli123_3.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -24,11 +26,8 @@ switch cond
 end
 end
 
-subjNum = input('\n Enter subject code:','s');
-assert(length(subjNum)==3,'%s: only 3 chars please.',mfilename)
-
 % Create a directory for this subject's data
-dirname=['het',subjNum];
+dirname=['het',subjCode];
 pathdata=strcat(pwd,filesep,'..',filesep,'DATA',filesep,dirname,filesep); 
 currBlock = 0; % this is a pain to expand
 
@@ -37,6 +36,12 @@ if exist(pathdata,'dir')
   subjFiles = what(pathdata);
   fIndex = find(strncmp(cond,subjFiles.mat,1));  % find the index for this condition
 else
+  fprintf(1,'Starting new subject. Stimulus file is: %s',stimfile)
+  sanityCheck = input('\n Are you happy with this? [y/n]:','s');
+  if strcmp(sanityCheck,'n')
+    disp('OK, maybe you should fix that.')
+    return
+  end
   mkdir(pathdata);
   fIndex = [];
 end
@@ -46,7 +51,7 @@ end
 switch length(fIndex==0)
  case 0
   % avoid overwriting! use time string in filename
-  datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjNum,'_time',datestr(now,'HH_MM_SS'));
+  datafile = strcat(pathdata,cond,num2str(currBlock),'_',subjCode,'_time',datestr(now,'HH_MM_SS'));
   doneTrials = 0;
   % Preallocate 2AFC task response variables
   totTrials = length(trials);  % FIXME: this needs to be blocked!!
@@ -99,6 +104,10 @@ keymap.quit = 'q';  % q=quits.
 meanEqualCode = 'x';  % when neither 'l' nor 'r' is right because means are equal!
 maxTrials = 42;  % upto 42 trials per block!
 numTrials = min([ (length(trials)-doneTrials), maxTrials]);  % trials to do this time
+if numTrials==0
+  fprintf(1,'\nDone with condition %s.\nPlease inform the experimenter.\n',cond)
+  return
+end
 
 %% Input/Output Device Settings
 % Display / Screen stuff
@@ -250,7 +259,7 @@ end  %% main trial loop
  
 % Inform subjects that experiment is over, shutdown everything
 endDisplay = ['The block is over.\n\n'...
-                'Please inform the experimenter.'];
+                'Please rest now, and restart when ready.'];
 DrawFormattedText(w, endDisplay, 'center', 'center', white);
 Screen('Flip', w);
 WaitSecs(2);
