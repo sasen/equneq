@@ -6,6 +6,7 @@ function [] = ShutdownNicely(shutdown)
 %     -- oldSkipSyncValue: Screen SkipSyncTests
   ShowCursor;
   Screen('Preference', 'VisualDebugLevel', shutdown.oldVDLevel);
+  Screen('Preference', 'Verbosity', shutdown.oldVerbosity);
   Screen('Preference', 'SkipSyncTests', shutdown.oldSkipSyncValue);
   Screen('CloseAll');
   PsychPortAudio('Close');

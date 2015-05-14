@@ -11,7 +11,7 @@ assert(nargin==2,'Two arguments, the condition code, and subject code, are requi
 assert(length(subjCode)==3,'subjCode must be 3 characters long.')
 assert(ischar(subjCode),'Put that subjCode in single quotes!')
 
-stimfile = 'allStimuli123_3.mat';
+stimfile = 'allStimuli123_7.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
@@ -31,7 +31,7 @@ dirname=['het',subjCode];
 pathdata=strcat(pwd,filesep,'..',filesep,'DATA',filesep,dirname,filesep); 
 currBlock = 0; % this is a pain to expand
 
-% Has this subject started this condition yet?
+% New subject? Or has this subject started this condition yet?
 if exist(pathdata,'dir')
   subjFiles = what(pathdata);
   fIndex = find(strncmp(cond,subjFiles.mat,1));  % find the index for this condition
@@ -128,6 +128,7 @@ HideCursor;
 % Initialize Screen
 WhichScreen=max(Screen('Screens'));
 shutdown.oldVDLevel = Screen('Preference', 'VisualDebugLevel', 2);
+shutdown.oldVerbosity = Screen('Preference', 'Verbosity', 1);
 shutdown.oldSkipSyncValue = Screen('Preference', 'SkipSyncTests', 1);
 [w, winRect] = Screen('OpenWindow',WhichScreen,BGCol);
 Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -138,15 +139,13 @@ HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal sid
 woff1 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% Other pre-trial stuff %
-%%%%%%%%%%%%%%%%%%%%%%%%%
+% Display reminder of instructions (need to have shown demo already)
+% Make them press left key, then right key; that will call the KbCheck/KbName MEX files!
+equneq_instructions(w, keymap.l, keymap.r);
 
-% Display Instructions
-%equneq_instructions(currBlock, w);
-% practice instructions, do practice trials, then expt instructions, expt trial blocks
-% Make them press a trial to start; that will call the KbCheck/KbName MEX files!
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main trial loop
 for i = doneTrials+1 : doneTrials+numTrials
 
@@ -237,8 +236,6 @@ for i = doneTrials+1 : doneTrials+numTrials
 	PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
 
             % 3. Record data for experimental parameters in .mat
-	    %% FIXME: maybe these should be preallocated!!
-            expdata.block(i) = currBlock;
             expdata.trial(i) = i;
             expdata.veridical(i) = trials(i).trialRightAnswers;
             expdata.RTs(i) = RTs(i);
