@@ -25,6 +25,7 @@ mRTmat = nan(nTicks,nCurves);  % mean RT data over psy ticks
 for cond = 1:length(fnames) 
 datafile = strcat([dirname, fnames{cond,:}]);
 load(datafile,'expdata');
+fprintf(1,'%s had accuracy %0.3f.\n',fnames{cond,:},nanmean(expdata.ACCs))  % what's accuracy like?
 
 cType = expdata.trialType; % get curveType for each trial
 nTr = length(cType);  % number of trials in datafile
@@ -50,9 +51,9 @@ for i = 1:length(types)
     trList = find(cType==curv & tickNums'==tk);
     curvTrials{tk,curv} = trList;  % list of trials belonging to this tick
     %% wait: what should happen if subj hit wrong button or didn't respond? maybe not nanmean
-    accmat(tk,curv) = mean(expdata.ACCs(trList));  % accuracy at this tick
-    mRTmat(tk,curv) = mean(expdata.RTs(trList));  % RTs... needs more processing FIXME
-    afcmat(tk,curv) = mean(expdata.afcL(trList));  % fraction chose left at this tick
+    accmat(tk,curv) = nanmean(expdata.ACCs(trList));  % accuracy at this tick
+    mRTmat(tk,curv) = nanmean(expdata.RTs(trList));  % RTs... needs more processing FIXME
+    afcmat(tk,curv) = nanmean(expdata.afcL(trList));  % fraction chose left at this tick
   end
 end
 end  % for each cond (go through data files)
