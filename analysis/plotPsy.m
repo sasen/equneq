@@ -1,10 +1,13 @@
-%function psymat = plotPsy(datafile)
-fnames =  ...
-['d0_888_time16_20_00.mat'; ...
- 'm0_888_time16_29_45.mat'; ...
- 's0_888_time16_36_58.mat'];
+function psymat = plotPsy(subjCode)
+dirname = strcat(['../DATA/het',subjCode,'/'])
+sDir = what(dirname)
+fnames = sDir.mat
+%fnames =  ...
+%['d0_888_time16_20_00.mat'; ...
+% 'm0_888_time16_29_45.mat'; ...
+% 's0_888_time16_36_58.mat'];
 
-load('allStimuli.mat'); % all trials and parameters
+load('allStimuli128_1.mat'); % all trials and parameters
 
 curvTrials = cell(nTicks,nCurves);  % store trial numbers of each tick by curve type
 accmat = nan(nTicks,nCurves);  % [0,1] accuracy data over psy ticks
@@ -12,8 +15,8 @@ afcmat = nan(nTicks,nCurves);  % [0,1] chose left in 2AFC <--- psy func data!
 mRTmat = nan(nTicks,nCurves);  % mean RT data over psy ticks
 % would be good to record std and number of trials responded to (with l or r)
 
-for cond = 1:3 
-datafile = strcat([ '../DATA/het888/', fnames(cond,:)])
+for cond = 1:length(fnames) 
+datafile = strcat([dirname, fnames{cond,:}])
 load(datafile,'expdata');
 
 cType = expdata.trialType; % get curveType for each trial
@@ -48,5 +51,5 @@ end
 end  % for each cond (go through data files)
 %curvTrials can be aggregated by block as a 3rd cell dimension
 
-subplot(211), plot(tickVal,mRTmat(:,1:4))
-subplot(212), plot(tickVal,mRTmat(:,5:8))
+subplot(211), plot(tickVal,afcmat(:,1:4))
+subplot(212), plot(tickVal,afcmat(:,5:8))
