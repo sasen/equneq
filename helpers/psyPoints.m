@@ -44,9 +44,10 @@ minTaskTime = nTotalTrials * timePerTrial_est / 60;  % (min)
 % nonbase((nTicks+1)/2:end);
 % log2(nonbase/mbase);
 
+halfTicks = (nTicks-1)/2;
 %ls3x = logspace(log10(1/3),0,(nTicks+1)/2);
-ls3x = logspace(log10(1/2),0,(nTicks+1)/2);
-weights = [[ ls3x; ones(1,8)] [ones(1,7); ls3x([7:-1:1])] ]';
+ls3x = logspace(log10(1/2),0,halfTicks+1);
+weights = [[ ls3x; ones(1,halfTicks+1)] [ones(1,halfTicks); ls3x([halfTicks:-1:1])] ]';
 sizes = weights*mStandard;
 
 paramFilename = strcat(['params',num2str(mStandard),'_nPairs',num2str(nPairs),'.mat']);

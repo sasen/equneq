@@ -9,9 +9,9 @@ function [stimfilename, sTr, dTr, mTr] = makeAll(mStandard,debug)
 if debug
   nPairs = 3;
 else
-  nPairs = 7;
+  nPairs = 6;
 end
-nTicks = 15;
+nTicks = 17;
 paramFilename = psyPoints(mStandard,nPairs,nTicks,debug);
 load(paramFilename);
 

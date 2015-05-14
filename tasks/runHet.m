@@ -11,7 +11,7 @@ assert(nargin==2,'Two arguments, the condition code, and subject code, are requi
 assert(length(subjCode)==3,'subjCode must be 3 characters long.')
 assert(ischar(subjCode),'Put that subjCode in single quotes!')
 
-stimfile = 'allStimuli123_7.mat';
+stimfile = 'allStimuli123_6.mat';
 load(stimfile)
 if ~exist('trials')
 switch cond
