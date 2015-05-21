@@ -6,8 +6,8 @@ switch nargin
  case 0
   error('%s Give at least the subject code.',mfilename)
  case 1
-  mStandard = 128;
-  nPairs = 7;
+  mStandard = 123;
+  nPairs = 6;
 end
 
 stimFname = strcat('allStimuli',num2str(mStandard),'_',num2str(nPairs),'.mat');
@@ -59,10 +59,10 @@ end
 end  % for each cond (go through data files)
 %curvTrials can be aggregated by block as a 3rd cell dimension
 
-subplot(211), plot(log2(tickVal),afcmat(:,1:4),'o-'), axis tight 
+subplot(211), plot(log2(tickVal),afcmat(:,1:4),'o--'), axis tight 
 title([subjCode,': Same or Different']); xlabel('log2 (Lmean/Rmean)'); ylabel('% Chose Left')
 legend('6 vs 6','12 vs 12','6 vs 12','12 vs 6')
-subplot(212), plot(log2(tickVal),afcmat(:,5:8),'o-'), axis tight
+subplot(212), plot(log2(tickVal),afcmat(:,5:8),'o--'), axis tight
 title([subjCode, ': Mixed Condition']); xlabel('log2 (Lmean/Rmean)'); ylabel('% Chose Left')
 
 save('../analysis/saved.mat')
