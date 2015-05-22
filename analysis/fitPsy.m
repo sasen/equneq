@@ -1,8 +1,7 @@
 close all
-psydata = plotPsy('ssc',123,6);
+[counts, psydata] = plotPsy('005',123,6);
 load('../analysis/saved.mat')
 
-counts = 12*ones(size(psydata));  %%%% FIXME: get from dataset! no lies!
 shape = 'cumulative Gaussian';
 curvecolors = 'bgrcbgrc';
 %prefs = batch('shape', shape, 'n_intervals', 2, 'fix_gamma', NaN,'runs',500);
