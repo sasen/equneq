@@ -66,10 +66,21 @@ end
 end  % for each cond (go through data files)
 %curvTrials can be aggregated by block as a 3rd cell dimension
 
-subplot(211), plot(log2(tickVal),afcmat(:,1:4),'o--'), axis tight 
-title([subjCode,': Same or Different']); xlabel('log2 (Lmean/Rmean)'); ylabel('% Chose Left')
-legend('6 vs 6','12 vs 12','6 vs 12','12 vs 6')
-subplot(212), plot(log2(tickVal),afcmat(:,5:8),'o--'), axis tight
-title([subjCode, ': Mixed Condition']); xlabel('log2 (Lmean/Rmean)'); ylabel('% Chose Left')
+subplot(211), hold off
+plot(log2(tickVal),afcmat(:,1),'bs--','MarkerSize',9), hold on
+plot(log2(tickVal),afcmat(:,2),'gs--','MarkerSize',9),
+plot(log2(tickVal),afcmat(:,3),'rd--','MarkerSize',9),
+plot(log2(tickVal),afcmat(:,4),'md--','MarkerSize',9), axis tight 
+set(gca, 'FontSize', 18), grid on
+title([subjCode,': Same or Different']); ylabel('Prop. Chose Left')  % xlabel('log2 (Lmean/Rmean)'); 
+legend('6 vs 6','12 vs 12','6 vs 12','12 vs 6','Location','SouthEast')
+subplot(212), hold off
+plot(log2(tickVal),afcmat(:,5),'bo--','MarkerSize',9), hold on
+plot(log2(tickVal),afcmat(:,6),'go--','MarkerSize',9), 
+plot(log2(tickVal),afcmat(:,7),'ro--','MarkerSize',9), 
+plot(log2(tickVal),afcmat(:,8),'mo--','MarkerSize',9), axis tight
+set(gca, 'FontSize', 18), grid on
+title([subjCode, ': Mixed Condition']); xlabel('log2 (Lmean/Rmean)'); ylabel('Prop. Chose Left')
+
 
 save('../analysis/saved.mat')
