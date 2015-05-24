@@ -109,6 +109,13 @@ if numTrials==0
   return
 end
 
+% special subject code for DEBUG = dbg
+if strcmp(subjCode,'dbg')  
+  disp('DEBUG MODE!')
+  tDisplay  = 5;   % show display for really long time
+  numTrials =  3;
+end
+
 %% Input/Output Device Settings
 % Display / Screen stuff
 ResInfo             = Screen('Resolution',0);
@@ -165,7 +172,7 @@ for i = doneTrials+1 : doneTrials+numTrials
     [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
     % curImage=Screen('GetImage', w);  % store current window for later usage 
-    % fname = [expName num2str(i) '.jpg'];
+    % fname = ['screenshot' num2str(i) '.jpg'];
     % imwrite(curImage,fname,'jpg');
 
     %%% Stimulus offset: Blank screen until response
