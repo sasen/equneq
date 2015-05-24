@@ -1,13 +1,13 @@
 function setmat = generateSet(numItems, rmean, numSets)
 % function setmat = generateSet(numItems, rmean, numSets)
-% generateSet  Generate radii of ensembles of circles, with fixed mean & var
+% generateSet  Generate diameters of ensembles of circles, with fixed mean & var
 %   numItems (pos int): number of items (circles) in the set
-%   rmean (pos real): average radius of the circles, in pixels
+%   rmean (pos real): average diameter of the circles, in pixels
 %   numSets (pos int): number of sets to generate (eg 20)
-%   setmat (numItems x numSets pos real): radius of each circle (px)
+%   setmat (numItems x numSets pos real): diam of each circle (px)
 % Note: Not intended to be run in realtime, i.e., during an experiment.
-rvar=576; %% SS FIXME: pass in from main
-minSize = 15; maxSize = 150;  %% SS FIXME: these shouldn't hide here! pass in from main expt
+rvar=576; % diameter variance (px^2) %% SS FIXME: pass in from main
+minSize = 15; maxSize = 150;  % diameter limits %% SS FIXME: these shouldn't hide here! pass in from main expt
 
 % we'll need to draw samples until we get enough that meet the size constraints
 setmat = [];

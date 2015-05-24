@@ -1,8 +1,9 @@
 *~
+.DS_Store
+*.jpg
+*.png
+*.mat
 helpers/*~
-helpers/*.mat
 tasks/*~
-tasks/*.mat
 analysis/*~
-analysis/*.mat
 DATA/*

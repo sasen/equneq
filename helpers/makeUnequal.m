@@ -11,28 +11,8 @@ function [stimfilename, trials] = makeUnequal(n1,n2,m1,m2,numTrials)
 % assert(n1 <= n2,'Can you try that again with  n1 <= n2, please?')  % maybe someday
 assert(n1 < n2,'Can you try that again with  n1 < n2, please?')
 
-%% FIXME: hey, why am I not taking all the radius-lists and displaying them on both sides, with
-%  positions scrambled? maybe even a few times on each side, scrambling positions. that would be cool
-%  for l/r bias arguments, or for split-half analysis. in which case, i should just generate the trials
-%  and shuffle them together.
-
-% thinking: we need a setID maybe? or a pairID? or both
-% from this: 6,12,60,80, we can get:
-% these displays: 6_60, 6_80, 12_60, 12_80 which can appear on the left and right.
-% in both separate and mixed!! <-- get another stage to do this mixing (or read in)
-% and presented twice each, scrambled!  <-- runHet can't do this... need new positions.
-% to get the second position thing, i should just call the position getter after shuffling the list order.
-
-% 6_60 / 6_80  % i lied. this should be from 6,6,60,80
-% 6_80 / 6_60 (fix)
-% 12_60 / 12_80   % and this from 12,12,60,80
-% 12_80 / 12_60 (fix)
-% 6_80 / 12_60   % and this from 6,12,80,60
-% 12_60 / 6_80
-
-%%%%%%%%%%%%%% so really, it's just...
-% 6_60 / 12_80
-% 12_80 / 6_60
+%% I'm taking all the diameter-lists and displaying them on both sides, and again with
+%  positions scrambled. this could be cool for l/r bias arguments, or for split-half analysis. 
 
 pos{n1} = fixedPositions(n1); % get positions (pos is a cell array to accomodate unequal trials)
 pos{n2} = fixedPositions(n2);
@@ -52,7 +32,7 @@ if m1 > m2
 elseif m2 > m1
   type3correct = 'r';
   type4correct = 'l';
-else % m1 == m2; unclear what to say %% FIXME?
+else % m1 == m2
   type3correct = 'x';
   type4correct = 'x';
 end
