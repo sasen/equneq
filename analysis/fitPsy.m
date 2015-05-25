@@ -1,6 +1,6 @@
 function fitarray = fitPsy(subj,fitarray)
-[counts, psydata] = plotPsy(subj);
-load('../analysis/saved.mat')  % getting nCurves, tickVal
+[tickVal, counts, psydata] = aggregatePsy(subj);
+nCurves = size(counts,2); 
 
 shape = 'cumulative Gaussian';
 curvecolors = 'bgrmbgrm';
@@ -20,13 +20,10 @@ end
 for cur = 1:nCurves
   assignin('base','partialFitArray',fitarray);
   mycurve = [log2(tickVal)' psydata(:,cur) counts(:,cur)];
-%  outputPrefs(cur,:) = batch('write_pa', ['ssc_params',num2str(cur)] );
-%  psignifit(mycurve, [prefs outputPrefs(cur,:)]);  
   if ~any(fitarray(cur,:))
     fits(cur) = pfit(mycurve, 'no plot', 'compute_stats',0, prefs);
     fitarray(cur,:) = fits(cur).params.est;
   end
-%  eval(['myparams = ' outputPrefs(cur,end-11:end-1),'.est']);
 
 %   %%% individual curve plots (useful for debugging)
 %   figure(3); subplot(2,4,cur); hold on
@@ -49,4 +46,4 @@ for cur = 1:nCurves
 
 end
 
-save(['../analysis/curves',subj,'.mat'])
+save(['../analysis/work/curves',subj,'.mat'])
