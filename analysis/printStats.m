@@ -11,8 +11,8 @@ else
     condnames = {'6s-12s B','EQ--0  B','6s-12s M','EQ--0  M'};
    case 6
     condnames = {'sigEq  B','sigUn  B','sigEvU B','sigEq  M','sigUn  M','sigEvU M'};
-   case 8
-    condnames = {'6/12-EQ B','12/6-EQ B','AsymPSE B','OS-UNEQ B','6/12-EQ M','12/6-EQ M','AsymPSE M','OS-UNEQ M'};
+   case 10
+    condnames = {'6/12-EQ B','12/6-EQ B','AsymPSE B','OS-UNEQ B','OS-AREA B','6/12-EQ M','12/6-EQ M','AsymPSE M','OS-UNEQ M','OS-AREA M'};
   end
 end
 for i = 1:n 

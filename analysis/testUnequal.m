@@ -10,10 +10,12 @@ mOS = m3-m4;
 [~,p(1),ci(:,1),stats1] = ttest(m3,mEq,[],'right');
 [~,p(2),ci(:,2),stats2] = ttest(m4,mEq,[],'left');
 [~,p(3),ci(:,3),stats3] = ttest(m3-mEq,mEq-m4,[],'both');
-[~,p(4),ci(:,4),stats4] = ttest(mOS,[],[],'both');
+[~,p(4),ci(:,4),stats4] = ttest(mOS,0,[],'both');  % Ensem == Mean Diam? Note: MHT correction ~ alpha/2
+[~,p(5),ci(:,5),stats5] = ttest(mOS,1,[],'both');  % Ensem == Total Area? Note: MHT correction ~ alpha/2
 condst = catStruct(stats1,stats2);
 condst = catStruct(condst,stats3);
 condst = catStruct(condst,stats4);
+condst = catStruct(condst,stats5);
 condst.p = p;
 condst.ci = ci;
 condst.meanm = mean(ci);
