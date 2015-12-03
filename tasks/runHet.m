@@ -4,7 +4,7 @@ function datafile = runHet(cond,subjCode)
 %   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
 %% Experiment description
 %
-% Two ensembles of filled circles, to L and R of fixation. 
+% Two ensembles of unfilled circles, to L and R of fixation. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -165,14 +165,16 @@ for i = doneTrials+1 : doneTrials+numTrials
     Screen('FillRect', woff1, black); 
     Screen('FillRect', woff2, black); 
     Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),white,[],1); % 1=cir, 2=circ++
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3)-10,black,[],1); % for outline
     Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),white,[],1); 
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3)-10,black,[],1); % for outline
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
     DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
     [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
     % curImage=Screen('GetImage', w);  % store current window for later usage 
-    % fname = ['screenshot' num2str(i) '.jpg'];
+    % fname = ['screenshotOUTLINE' num2str(i) '.jpg'];
     % imwrite(curImage,fname,'jpg');
 
     %%% Stimulus offset: Blank screen until response
