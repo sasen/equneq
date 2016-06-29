@@ -15,7 +15,7 @@ f = load('../analysis/allSubjsFitarrays.mat'); % fit struct
 % BLOCKED, MIXED, BK v MX
 %---- sigma comparisons
 %---- bizarre shifty thing??
-groupSID = [1,2,3,4,5,6];
+groupSID = [1,2,3,4,5,6,7,8,9,10]; %[1,2,3,4,5,6];
 indivSID = [6,7,8];
 SID = struct('group',groupSID,'indiv',indivSID);
 ANLYZ = SID.(sType);
@@ -83,7 +83,7 @@ title(['Point of Subjective Equality Shifts']) %title([sType ': Mu Fits'])
 condnames = {'Blocked', 'Mixed'}
 %xticklabel_rotate([1:8],0,condnames,'Fontsize',18);
 xticklabel_rotate([3 7],0,condnames,'Fontsize',18);
-saveas(gcf,['../analysis/work/nice_figs', sType,'_muPlots.jpg'],'jpg')
+saveas(gcf,['../analysis/work/nice_figs/', sType,'_muPlots.jpg'],'jpg')
 
 % figure()
 % plot(f.ss(ANLYZ,:)','+--','LineWidth',2); hold on

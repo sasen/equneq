@@ -38,4 +38,4 @@ title([subj,': Blocked Conditions']); ylabel('Prop. Chose Left')
 %legend('6 vs 6','12 vs 12','6 vs 12','12 vs 6','Location','SouthEast') % FIXME
 subplot(212), axis(axisbounds);
 set(gca, 'FontSize', 18), grid on
-title([subj, ': Mixed Condition']); xlabel('log2 (Lmean/Rmean)'); ylabel('Prop. Chose Left')
+title([subj, ': Mixed Condition']); xlabel('log_2 (\mu_L/\mu_R)'); ylabel('Prop. Chose Left')
