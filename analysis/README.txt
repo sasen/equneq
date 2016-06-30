@@ -14,10 +14,10 @@ II. Fit psychometric functions for each subject
     NB: this takes a while, so don't refit old subjects if impatient. HOWEVER, group-level analysis currently requires all subjects' fits to be in one matfile! 
     (Sorry. Either patch that or go make a cup of tea.) SSTODOTODOFIXME
   1. Edit fitAllSubjs.m: Manually change/update the list of subjects to be analyzed. These are the "XXX" subject codes in the subject folder names.
-  2. Run the script fitAllSubjs (beware, clear/close all). This saves all fits, produces individual figures, but doesn't save the figures.
-     The fit parameters are in ms and ss, which are mu and sigma for a cumulative gaussian.
+  2. Run the script fitAllSubjs (beware, clear/close all). This saves all fits, produces individual psy curve figures, and saves the figures.
+     The fit parameters are in ms and ss, which are mu and sigma for a cumulative gaussian, respectively.
 
--. After this, you could come back and just run the script regenPlots, and that would load the fits and make+save figures (or 2 kinds??? not sure). 
+-. After this, you could come back and just run the script regenPlots, or jump right to group-level t-tests.
 
 III. Group level statistics
      This function is flexible enough to handle two types of subjects: different people ("group"), or one subject you've run multiple times ("indiv").
