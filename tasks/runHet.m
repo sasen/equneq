@@ -153,7 +153,7 @@ woff2 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
 
 % Display reminder of instructions (need to have shown demo already)
 % Make them press left key, then right key; that will call the KbCheck/KbName MEX files!
-equneq_instructions(w, keymap.l, keymap.r);
+equneq_instructions(w, keymap.l, keymap.r, BGCol, TextColors{1});
 
 
 
