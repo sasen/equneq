@@ -15,7 +15,7 @@ f = load('../analysis/allSubjsFitarrays.mat'); % fit struct
 % BLOCKED, MIXED, BK v MX
 %---- sigma comparisons
 %---- bizarre shifty thing??
-groupSID = [1,2,3,4,5,6];
+groupSID = [1,2,3,4,5,6,7,8,9,10]; %[1,2,3,4,5,6];
 indivSID = [6,7,8];
 SID = struct('group',groupSID,'indiv',indivSID);
 ANLYZ = SID.(sType);
@@ -69,7 +69,7 @@ lh2 = line([2.5; 2.5],yrange');
 set(lh2,'Color','k','LineWidth',1,'LineStyle',':');
 lh3 = line([6.5; 6.5],yrange');
 set(lh3,'Color','k','LineWidth',1,'LineStyle',':');
-ylabel('mean PSE')
+ylabel('mean PSE   [log_2 (\mu_L/\mu_R)]')
 lhcond3 = line([2.5 6.5; 3.5 7.5],0.5*ones(2));  % 6 & 12
 set(lhcond3,'Color','r','LineWidth',2,'LineStyle','--');
 lhcond4 = line([3.5 7.5; 4.5 8.5],-0.5*ones(2)); % 12 & 6 
@@ -77,13 +77,13 @@ set(lhcond4,'Color','m','LineWidth',2,'LineStyle','--');
 lhcondEQ = line([0.5 4.5; 2.5 6.5],0*ones(2)); % EQ
 set(lhcondEQ,'Color','k','LineWidth',2,'LineStyle','--');
 ylim(yrange');
-title(['Point of Subj. Equality']) %title([sType ': Mu Fits'])
+title(['Point of Subjective Equality Shifts']) %title([sType ': Mu Fits'])
 %condnames = {'  6/6 B','12/12 B',' 6/12 B',' 12/6 B','  6/6 M','12/12 M',' 6/12 M',' 12/6 M'};
 %condnames = {'   6&6','12&12',' 6&12',' 12&6','  6&6','12&12',' 6&12',' 12&6'};
 condnames = {'Blocked', 'Mixed'}
 %xticklabel_rotate([1:8],0,condnames,'Fontsize',18);
 xticklabel_rotate([3 7],0,condnames,'Fontsize',18);
-saveas(gcf,['../analysis/work/nice_figs', sType,'_muPlots.jpg'],'jpg')
+saveas(gcf,['../analysis/work/nice_figs/', sType,'_muPlots.jpg'],'jpg')
 
 % figure()
 % plot(f.ss(ANLYZ,:)','+--','LineWidth',2); hold on
