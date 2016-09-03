@@ -8,7 +8,7 @@ function datafile = runHet(cond,subjCode)
 %   datafile (str) : full path to textfile containing subject's saved results for this block
 % Experiment description
 %
-% Two ensembles of unfilled circles, to L and R of fixation, controlling for luminance. 
+% Two ensembles of unfilled circles, to L and R of fixation.
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -125,8 +125,8 @@ end
 % Display / Screen stuff
 ResInfo             = Screen('Resolution',0);
 ScrRes              = [ResInfo.width ResInfo.height];
-BGCol               = gray;        % backgroundcolor
-TextColors          = {black};
+BGCol               = black;        % backgroundcolor
+TextColors          = {white};
 KbName('UnifyKeyNames');
 %% Feedback tones
 InitializePsychSound;
