@@ -1,10 +1,14 @@
 function datafile = runHet(cond,subjCode)
 % RUNHET   Run heterogeneous ensembles experiment
-%   Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
+%   Initially released Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
+%   Updates & task variations at https://github.com/sasen/equneq/
+% datafile = runHet(cond,subjCode)
 %   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
-%% Experiment description
+%   subjCode (char(3)) : 3-character code for the subject, in quotes. 'dbg'-> debug mode
+%   datafile (str) : full path to textfile containing subject's saved results for this block
+% Experiment description
 %
-% Two ensembles of unfilled circles, to L and R of fixation. 
+% Two ensembles of unfilled circles, to L and R of fixation, controlling for luminance. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -89,6 +93,7 @@ end
 % Stimulus parameters %
 %%%%%%%%%%%%%%%%%%%%%%%
 black = [  0   0   0];
+gray  = [128 128 128];
 white = [255 255 255];   
 fixationLength = 10;  % length of lines in fixation cross
 tFixation = 0.500;  % 500 ms fixation cross display
@@ -120,8 +125,8 @@ end
 % Display / Screen stuff
 ResInfo             = Screen('Resolution',0);
 ScrRes              = [ResInfo.width ResInfo.height];
-BGCol               = black;        % backgroundcolor
-TextColors          = {white};
+BGCol               = gray;        % backgroundcolor
+TextColors          = {black};
 KbName('UnifyKeyNames');
 %% Feedback tones
 InitializePsychSound;
@@ -143,8 +148,8 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 %% Open a half-size offscreen window for pre-drawing Left & Right stimuli
 HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal side
-woff1 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
-woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
+woff1 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
+woff2 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
 
 % Display reminder of instructions (need to have shown demo already)
 % Make them press left key, then right key; that will call the KbCheck/KbName MEX files!
@@ -157,19 +162,19 @@ equneq_instructions(w, keymap.l, keymap.r);
 for i = doneTrials+1 : doneTrials+numTrials
 
     % Draw fixation to indicate the start of the trial
-    Screen('FillRect', w, black);
-    DrawFixation(w, fixationLength, xCen, yCen);
+    Screen('FillRect', w, BGCol);
+    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});
     [~, tFixOnset] = Screen('Flip', w,[], 1);   % dontClear =1  %% Show fixation, mark its onset time
 
     % Prepare stimuli on our offscreen half-windows
-    Screen('FillRect', woff1, black); 
-    Screen('FillRect', woff2, black); 
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),white,[],1); % 1=cir, 2=circ++
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3)-10,black,[],1); % for outline
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),white,[],1); 
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3)-10,black,[],1); % for outline
+    Screen('FillRect', woff1, BGCol); 
+    Screen('FillRect', woff2, BGCol); 
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),TextColors{1},[],1); % 1=cir, 2=circ++
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3)-10,BGCol,[],1); % for outline
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),TextColors{1},[],1); 
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3)-10,BGCol,[],1); % for outline
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
-    DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
+    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
     [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
@@ -178,7 +183,7 @@ for i = doneTrials+1 : doneTrials+numTrials
     % imwrite(curImage,fname,'jpg');
 
     %%% Stimulus offset: Blank screen until response
-    Screen('FillRect', w, black);
+    Screen('FillRect', w, BGCol);
     [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
     % Get 2AFC response keypress. Keep this clean to have tight confidence on RT
@@ -266,7 +271,7 @@ end  %% main trial loop
 % Inform subjects that experiment is over, shutdown everything
 endDisplay = ['The block is over.\n\n'...
                 'Please rest now, and restart when ready.'];
-DrawFormattedText(w, endDisplay, 'center', 'center', white);
+DrawFormattedText(w, endDisplay, 'center', 'center', TextColors{1});
 Screen('Flip', w);
 WaitSecs(2);
 ShutdownNicely(shutdown);  % Close the program
