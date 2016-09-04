@@ -8,7 +8,7 @@ function datafile = runHet(cond,subjCode)
 %   datafile (str) : full path to textfile containing subject's saved results for this block
 % Experiment description
 %
-% Two ensembles of filled circles, to L and R of fixation.
+% Two ensembles of random-luminance filled circles, to L and R of fixation.
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -16,15 +16,20 @@ assert(length(subjCode)==3,'subjCode must be 3 characters long.')
 assert(ischar(subjCode),'Put that subjCode in single quotes!')
 
 stimfile = 'allStimuli123_6.mat';
-load(stimfile)
+lumfile = ['lum' stimfile];
+load(stimfile);
+load(lumfile);
 if ~exist('trials')
 switch cond
  case 's'
   trials = sTr;
+  lums = sLum;
  case 'd'
   trials = dTr;
+  lums = dLum;
  case 'm'
   trials = mTr;
+  lums = mLum;
  otherwise
   error('%s: Condition %s not understood.',mfilename,cond)
 end
@@ -169,8 +174,8 @@ for i = doneTrials+1 : doneTrials+numTrials
     % Prepare stimuli on our offscreen half-windows
     Screen('FillRect', woff1, BGCol); 
     Screen('FillRect', woff2, BGCol); 
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),TextColors{1},[],1); % 1=cir, 2=circ++
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),TextColors{1},[],1); 
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),repmat(lums(i).Lcirs,3,1),[],1); % 1=cir, 2=circ++
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),repmat(lums(i).Rcirs,3,1),[],1); 
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
     DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
