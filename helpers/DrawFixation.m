@@ -11,8 +11,9 @@ if nargin == 4
   rgb = [255 255 255]; % default to white cross
 end
 
+Screen('DrawDots', window, [x;y], armLength, rgb)
 %Screen('DrawLine', window, rgb, x - armLength, y, x + armLength, y);
-Screen('DrawLine', window, rgb, x - armLength, y+armLength, x + armLength, y-armLength);
+%Screen('DrawLine', window, rgb, x - armLength, y+armLength, x + armLength, y-armLength);
 %Screen('DrawLine', window, rgb, x, y - armLength, x, y + armLength);
-Screen('DrawLine', window, rgb, x-armLength, y - armLength, x+armLength, y + armLength);
+%Screen('DrawLine', window, rgb, x-armLength, y - armLength, x+armLength, y + armLength);
 Screen('DrawLine', window, rgb, x, 1, x, 800);

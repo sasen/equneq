@@ -287,6 +287,7 @@ end  %% main trial loop
 
  
 % Inform subjects that experiment is over, shutdown everything
+Screen('FillRect', w, BGCol);
 endDisplay = ['The block is over.\n\n'...
                 'Please rest now, and restart when ready.'];
 DrawFormattedText(w, endDisplay, 'center', 'center', TextColors{1});
