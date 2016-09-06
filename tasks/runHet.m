@@ -8,7 +8,7 @@ function datafile = runHet(cond,subjCode)
 %   datafile (str) : full path to textfile containing subject's saved results for this block
 % Experiment description
 %
-% Two ensembles of unfilled circles, to L and R of fixation, controlling for luminance. 
+% Two ensembles of noise-filled circles, to L and R of fixation, controlling for luminance. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -95,7 +95,9 @@ end
 black = [  0   0   0];
 gray  = [128 128 128];
 white = [255 255 255];   
+red   = [255   0   0];
 fixationLength = 10;  % length of lines in fixation cross
+outlineWidth = 10;    % width of outline in px
 tFixation = 0.500;  % 500 ms fixation cross display
 tDisplay  = 0.200;  % 200 ms stimulus display time
 tRTLimit  = 2.000;  % 2000ms response time limit
@@ -127,6 +129,7 @@ ResInfo             = Screen('Resolution',0);
 ScrRes              = [ResInfo.width ResInfo.height];
 BGCol               = gray;        % backgroundcolor
 TextColors          = {black};
+FixationColor	    = red;
 KbName('UnifyKeyNames');
 %% Feedback tones
 InitializePsychSound;
@@ -151,6 +154,20 @@ HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal sid
 woff1 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
 woff2 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
 
+size_win = SizeOfRect(winRect);
+noiseMatrix = (randi(2,size_win) - 1) * 255;  % binary pixel noise
+%noiseMatrix = (2*(randi(2,size_win)-1.5) .* (randi(2,size_win)-1))*127 + 128; % half bgcol, half binary pixel noise
+frac16 = prod(size_win)/16;
+orderly = [zeros(1,14*frac16) ones(1,frac16) -ones(1,frac16)]*127 + 128;
+%noiseMatrix = reshape(Shuffle(orderly), size_win);   % histcounts(noiseMatrix(:)',3)
+noiseTex = Screen('MakeTexture', w, noiseMatrix);
+
+%checkerboardTex = Screen('MakeTexture', w, kron(ones(size_win/2), eye(2)*255));  % checkerboard pixels
+checkerboardTex = Screen('MakeTexture', w, 255*kron(ones(size_win/4), kron(eye(2),ones(2)) ));  % checkerboard pixels
+deltachkbd = kron((2*eye(2) - 1)*32, ones(4));
+faintcb = 128 + (kron(ones(size_win/8), deltachkbd));
+faintcheckerboardTex = Screen('MakeTexture', w, faintcb); 
+
 % Display reminder of instructions (need to have shown demo already)
 % Make them press left key, then right key; that will call the KbCheck/KbName MEX files!
 equneq_instructions(w, keymap.l, keymap.r, BGCol, TextColors{1});
@@ -162,19 +179,20 @@ equneq_instructions(w, keymap.l, keymap.r, BGCol, TextColors{1});
 for i = doneTrials+1 : doneTrials+numTrials
 
     % Draw fixation to indicate the start of the trial
-    Screen('FillRect', w, BGCol);
-    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});
+    Screen('DrawTexture', w, checkerboardTex, [], [], [], 0);   %  Screen('FillRect', w, BGCol);
+    DrawFixation(w, fixationLength, xCen, yCen, FixationColor);
     [~, tFixOnset] = Screen('Flip', w,[], 1);   % dontClear =1  %% Show fixation, mark its onset time
 
     % Prepare stimuli on our offscreen half-windows
-    Screen('FillRect', woff1, BGCol); 
-    Screen('FillRect', woff2, BGCol); 
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),TextColors{1},[],1); % 1=cir, 2=circ++
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3)-10,BGCol,[],1); % for outline
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),TextColors{1},[],1); 
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3)-10,BGCol,[],1); % for outline
+    Screen('DrawTexture', woff1, checkerboardTex, [0 0 HalfScrRes], [0 0 HalfScrRes], [], 0); %    Screen('FillRect', woff1, BGCol); 
+    Screen('DrawTexture', woff2, checkerboardTex, [0 0 HalfScrRes], [0 0 HalfScrRes], [], 0); %    Screen('FillRect', woff2, BGCol); 
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),[TextColors{1} 0],[],1); % 1=cir, 2=circ++
+%    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3)-2*outlineWidth,[black 128],[],1); % for outline
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),[TextColors{1} 0],[],1); 
+%    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3)-2*outlineWidth,[black 128],[],1); % for outline
+    Screen('DrawTexture', w, noiseTex, [], [], [], 0); % filterMode=0 for uncorr noise!
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
-    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});  % Add fixation cross last
+    DrawFixation(w, fixationLength, xCen, yCen, FixationColor);  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
     [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
@@ -183,7 +201,7 @@ for i = doneTrials+1 : doneTrials+numTrials
     % imwrite(curImage,fname,'jpg');
 
     %%% Stimulus offset: Blank screen until response
-    Screen('FillRect', w, BGCol);
+    Screen('DrawTexture', w, checkerboardTex, [], [], [], 0);   %  Screen('FillRect', w, BGCol);
     [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
     % Get 2AFC response keypress. Keep this clean to have tight confidence on RT

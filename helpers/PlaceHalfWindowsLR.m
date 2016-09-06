@@ -9,5 +9,5 @@ function [] = PlaceHalfWindowsLR(window,onehalf,otherhalf,ScrRes)
 % See also: DrawMirrored, in the whac repository.
 
 assert(nargin==4,'PlaceHalfWindowsLR: Need 4 arguments, got %d.\n',nargin)
-Screen('DrawTexture',window,onehalf,[], [0 0 ScrRes(1)/2 ScrRes(2)], 0);
-Screen('DrawTexture',window,otherhalf,[], [ScrRes(1)/2 0 ScrRes(1) ScrRes(2)], 0);
+Screen('DrawTexture',window,onehalf,[], [0 0 ScrRes(1)/2 ScrRes(2)], 0, 0); % filterMode=0 for uncorr noise!
+Screen('DrawTexture',window,otherhalf,[], [ScrRes(1)/2 0 ScrRes(1) ScrRes(2)], 0, 0);
