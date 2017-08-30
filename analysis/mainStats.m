@@ -15,7 +15,7 @@ f = load('../analysis/allSubjsFitarrays.mat'); % fit struct
 % BLOCKED, MIXED, BK v MX
 %---- sigma comparisons
 %---- bizarre shifty thing??
-groupSID = [1,2,3,4,5,6,7,8,9,10]; %[1,2,3,4,5,6];
+groupSID = [1:18]; %[1,2,3,4,5,6];
 indivSID = [6,7,8];
 SID = struct('group',groupSID,'indiv',indivSID);
 ANLYZ = SID.(sType);
@@ -47,7 +47,7 @@ printStats(moreU)
 printStats(condst)
 printStats(sigst)
 
-plot(st.conds,st.meanm,'go','MarkerSize',14); %bar(st.conds,st.meanm);
+%plot(st.conds,st.meanm,'ko','MarkerSize',14); %bar(st.conds,st.meanm);
 samepaints = [f.ECUR'; f.UCUR'];
 curvecolors = 'bgrm';
 for cur = 1:4
@@ -62,7 +62,7 @@ set(lh4,'Color','k','LineStyle','-','LineWidth',1);
 
 errorbar(st.conds,st.meanm,range(st.ci)/2,'LineStyle','none','Color','k')
 set(gca, 'FontSize', 18)
-yrange = [-0.6 0.6]; %get(gca,'YLim');
+yrange = [-0.6 0.61]; %get(gca,'YLim');
 lh = line([4.5; 4.5],yrange');
 set(lh,'Color','k','LineWidth',3);
 lh2 = line([2.5; 2.5],yrange');
@@ -83,7 +83,7 @@ title(['Point of Subjective Equality Shifts']) %title([sType ': Mu Fits'])
 condnames = {'Blocked', 'Mixed'}
 %xticklabel_rotate([1:8],0,condnames,'Fontsize',18);
 xticklabel_rotate([3 7],0,condnames,'Fontsize',18);
-saveas(gcf,['../analysis/work/nice_figs/', sType,'_muPlots.jpg'],'jpg')
+saveas(gcf,['../analysis/work/nice_figs/', sType,'_mu.jpg'],'jpg')
 
 % figure()
 % plot(f.ss(ANLYZ,:)','+--','LineWidth',2); hold on
@@ -91,7 +91,8 @@ saveas(gcf,['../analysis/work/nice_figs/', sType,'_muPlots.jpg'],'jpg')
 % set(gca, 'FontSize', 18)
 % title([sType ': Sigma Fits'])
 % ylabel('Slope')
-% xticklabel_rotate([1:8],45,condnames,'Fontsize',18);
+% %xticklabel_rotate([1:8],45,condnames,'Fontsize',18);
+% xticklabel_rotate([3 7],0,condnames,'Fontsize',18);
 % axis tight
 % yrange = get(gca,'YLim');
 % boxplot(f.ss(ANLYZ,:));
