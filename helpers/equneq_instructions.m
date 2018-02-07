@@ -1,28 +1,24 @@
-function equneq_instructions(w,keyl,keyr,BGCol,TxtCol)
+function equneq_instructions(w,keyl,keyr)
 % EQUNEQ_INSTRUCTIONS  Display instructions for ensembles task
-% equneq_instructions(w,keyl,keyr,BGCol,TxtCol)
 %   w (int): usable PsychToolbox window
-%   keyl, keyr (char): left/right key, eg 'h' and 'k' 
-%   BGCol (int(3)): background color in [r g b] 0-255
-%   TxtCol: same idea, for text color
 
 % blank screen
-Screen('FillRect', w, BGCol);
+Screen('FillRect', w, [0 0 0]);
 Screen('Flip', w);
 
 instText = ['Choose which side has LARGER mean size.\n\n' ...
-	    sprintf('Press  %s  for left.             Press  %s  for right.\n\n',keyl,keyr) ...
+	    'Press  h  for left.             Press  k  for right.\n\n' ...
 	    'Look at the cross in the midddle.\n\n\n\n' ...
 	    'If you respond correctly, you will hear a HIGH beep. \n\n'...
 	    'If you respond incorrectly, you will hear a LOW beep. \n\n\n'...
 	    'If you do not respond in time, you will hear DOUBLE LOW beeps.\n\n' ...
-	    sprintf('If you press anything than %s or %s, you will hear DOUBLE LOW beeps.\n\n\n\n',keyl,keyr) ...
+	    'If you press anything than h or k, you will hear DOUBLE LOW beeps.\n\n\n\n' ...
 	    'Each block takes a few minutes, and contains about 40 trials.\n' ...
-	    sprintf('To begin, press %s, and then press %s.',keyl,keyr) ];
+	    'To begin, press h, and then press k.' ];
 
-Screen('FillRect', w, BGCol); % instruction screen background
+Screen('FillRect', w, [0 0 0]); % instruction screen background black
 Screen('TextSize', w, 25);
-DrawFormattedText(w, instText, 'Center', 'Center', TxtCol);
+DrawFormattedText(w, instText, 'Center', 'Center', [255 255 255]);
 Screen('Flip', w);  % display instructions
 
 nextKey = keyl; % first make them press left key

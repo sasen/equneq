@@ -9,5 +9,16 @@ function [] = PlaceHalfWindowsLR(window,onehalf,otherhalf,ScrRes)
 % See also: DrawMirrored, in the whac repository.
 
 assert(nargin==4,'PlaceHalfWindowsLR: Need 4 arguments, got %d.\n',nargin)
-Screen('DrawTexture',window,onehalf,[], [0 0 ScrRes(1)/2 ScrRes(2)], 0);
-Screen('DrawTexture',window,otherhalf,[], [ScrRes(1)/2 0 ScrRes(1) ScrRes(2)], 0);
+
+ScaleFactor = 0.93; % Stimuli generated assuming 48px/deg, actual setup is 44.65 px/deg
+[stimWidth, stimHeight] = Screen('WindowSize',onehalf);
+origHalfRect = [0 0 stimWidth stimHeight];
+targetRect = round(origHalfRect .* ScaleFactor);
+leftRect = CenterRect(targetRect, [0 0 ScrRes(1)/2 ScrRes(2)]);
+rightRect = CenterRect(targetRect, [ScrRes(1)/2 0 ScrRes(1) ScrRes(2)]);
+
+% Screen('Resolution',window)
+% Screen('DrawTexture',window,onehalf,[], [0 0 ScrRes(1)/2 ScrRes(2)], 0);
+% Screen('DrawTexture',window,otherhalf,[], [ScrRes(1)/2 0 ScrRes(1) ScrRes(2)], 0);
+Screen('DrawTexture',window,onehalf,[], leftRect, 0);
+Screen('DrawTexture',window,otherhalf,[], rightRect, 0);
