@@ -1,14 +1,10 @@
 function datafile = runHet(cond,subjCode)
 % RUNHET   Run heterogeneous ensembles experiment
-%   Initially released Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
-%   Updates & task variations at https://github.com/sasen/equneq/
-% datafile = runHet(cond,subjCode)
+%   Spring 2015 // Comments to Sasen Cain sasen@ucsd.edu
 %   cond (char) : condition 's', 'd', 'm' for same, different, or mixed trials
-%   subjCode (char(3)) : 3-character code for the subject, in quotes. 'dbg'-> debug mode
-%   datafile (str) : full path to textfile containing subject's saved results for this block
-% Experiment description
+%% Experiment description
 %
-% Two ensembles of filled circles, to L and R of fixation.
+% Two ensembles of filled circles, to L and R of fixation. 
 % Keypress 2-AFC on which side has greater mean diameter.
 % Sets may have equal or unequal numbers of circles.
 assert(nargin==2,'Two arguments, the condition code, and subject code, are required.')
@@ -17,7 +13,7 @@ assert(ischar(subjCode),'Put that subjCode in single quotes!')
 
 stimfile = 'allStimuli123_6.mat';
 load(stimfile)
-if ~exist('trials')
+if ~exist('trials','var')
 switch cond
  case 's'
   trials = sTr;
@@ -40,12 +36,12 @@ if exist(pathdata,'dir')
   subjFiles = what(pathdata);
   fIndex = find(strncmp(cond,subjFiles.mat,1));  % find the index for this condition
 else
-  fprintf(1,'Starting new subject. Stimulus file is: %s',stimfile)
-  sanityCheck = input('\n Are you happy with this? [y/n]:','s');
-  if strcmp(sanityCheck,'n')
-    disp('OK, maybe you should fix that.')
-    return
-  end
+%   fprintf(1,'Starting new subject. Stimulus file is: %s',stimfile)
+%   sanityCheck = input('\n Are you happy with this? [y/n]:','s');
+%   if strcmp(sanityCheck,'n')
+%     disp('OK, maybe you should fix that.')
+%     return
+%   end
   mkdir(pathdata);
   fIndex = [];
 end
@@ -93,7 +89,6 @@ end
 % Stimulus parameters %
 %%%%%%%%%%%%%%%%%%%%%%%
 black = [  0   0   0];
-gray  = [128 128 128];
 white = [255 255 255];   
 fixationLength = 10;  % length of lines in fixation cross
 tFixation = 0.500;  % 500 ms fixation cross display
@@ -110,7 +105,7 @@ meanEqualCode = 'x';  % when neither 'l' nor 'r' is right because means are equa
 maxTrials = 42;  % upto 42 trials per block!
 numTrials = min([ (length(trials)-doneTrials), maxTrials]);  % trials to do this time
 if numTrials==0
-  fprintf(1,'\nDone with condition %s.\nPlease inform the experimenter.\n',cond)
+  fprintf(1,'\nDone with condition %s.\nPlease inform the experimenter.\n',cond) %#ok<PRTCAL>
   return
 end
 
@@ -147,13 +142,16 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 [xCen, yCen] = RectCenter(winRect);
 
 %% Open a half-size offscreen window for pre-drawing Left & Right stimuli
-HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal side
-woff1 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
-woff2 = Screen('OpenOffScreenWindow',w,[BGCol 0], [0 0 HalfScrRes]);
+% HalfScrRes = [ScrRes(1)/2 ScrRes(2)];  % half-screens split along horizontal side
+% woff1 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
+% woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 HalfScrRes]);
+originalHSR = [1280/2 800]; % Half of Sasen's original screen size
+woff1 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 originalHSR]);
+woff2 = Screen('OpenOffScreenWindow',w,[0 0 0 0], [0 0 originalHSR]);
 
 % Display reminder of instructions (need to have shown demo already)
 % Make them press left key, then right key; that will call the KbCheck/KbName MEX files!
-equneq_instructions(w, keymap.l, keymap.r, BGCol, TextColors{1});
+equneq_instructions(w, keymap.l, keymap.r);
 
 
 
@@ -162,17 +160,17 @@ equneq_instructions(w, keymap.l, keymap.r, BGCol, TextColors{1});
 for i = doneTrials+1 : doneTrials+numTrials
 
     % Draw fixation to indicate the start of the trial
-    Screen('FillRect', w, BGCol);
-    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});
+    Screen('FillRect', w, black);
+    DrawFixation(w, fixationLength, xCen, yCen);
     [~, tFixOnset] = Screen('Flip', w,[], 1);   % dontClear =1  %% Show fixation, mark its onset time
 
     % Prepare stimuli on our offscreen half-windows
-    Screen('FillRect', woff1, BGCol); 
-    Screen('FillRect', woff2, BGCol); 
-    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),TextColors{1},[],1); % 1=cir, 2=circ++
-    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),TextColors{1},[],1); 
+    Screen('FillRect', woff1, black); 
+    Screen('FillRect', woff2, black); 
+    Screen('DrawDots',woff1,trials(i).Lcirs(:,1:2)',trials(i).Lcirs(:,3),white,[],1); % 1=cir, 2=circ++
+    Screen('DrawDots',woff2,trials(i).Rcirs(:,1:2)',trials(i).Rcirs(:,3),white,[],1); 
     PlaceHalfWindowsLR(w,woff1,woff2,ScrRes);  % Put the stimuli on the window
-    DrawFixation(w, fixationLength, xCen, yCen, TextColors{1});  % Add fixation cross last
+    DrawFixation(w, fixationLength, xCen, yCen);  % Add fixation cross last
     % Wait til the end of fixation period; then display stimuli. Mark stimulus onset time.
     [~, tStimulusOnset] = Screen('Flip', w, tFixOnset+tFixation);   %%%%%%%%% <========== show stimuli!
 
@@ -181,7 +179,7 @@ for i = doneTrials+1 : doneTrials+numTrials
     % imwrite(curImage,fname,'jpg');
 
     %%% Stimulus offset: Blank screen until response
-    Screen('FillRect', w, BGCol);
+    Screen('FillRect', w, black);
     [~, tStimulusOffset] = Screen('Flip', w, tStimulusOnset+tDisplay, 1);   % dontClear =1
 
     % Get 2AFC response keypress. Keep this clean to have tight confidence on RT
@@ -220,47 +218,47 @@ for i = doneTrials+1 : doneTrials+numTrials
       end  % if keyisdown ITI
 
       if ~postTrialStuffDoneYet
-	% 1. Give real-time feedback in the form of sounds, record accuracy data
-	if isnan(RTs(i))   % didn't respond in time  [we're characterizing response]
-	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);
-	elseif strcmp( trials(i).trialRightAnswers, meanEqualCode );  % trial has no right/wrong ans
-	  % the means are actually equal. flip a coin to call it right or wrong
-	  % note: accuracy is a lie here, but it saves WHAT WE TOLD THE SUBJECT!!
-	  % FIXME: ideally, this would be standard for all subjects!!
-	  if round(rand)  % coinflip = 1; call it right
-            PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
-            ACCs(i) = 1;
-	  else  % call it wrong
-	    PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
-            ACCs(i) = 0;
-	  end  % if coin flip
-	elseif  strcmp(choices{i}, keymap.l) || strcmp(choices{i}, keymap.r)  % hit a valid key
-	  if strcmp(choices{i}, keymap.(trials(i).trialRightAnswers)) % response was right
-	    PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
-            ACCs(i) = 1;
-	  else      % response was the wrong side
-	    PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
-            ACCs(i) = 0;
-	  end  %-- if response was right
-	else  % hit an invalid key.  Note: ACCs(i) should stay NaN as initialized
-	  PsychPortAudio('FillBuffer', audiohandle,toneToolate);  % FIXME: giving too-late feedback ok?
-	end  %-- isnan  (characterize response)
-	PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
-
-            % 3. Record data for experimental parameters in .mat
-            expdata.trial(i) = i;
-            expdata.veridical(i) = trials(i).trialRightAnswers;
-            expdata.RTs(i) = RTs(i);
-            expdata.choices{i} = choices{i};
-	    expdata.afcL(i) = afcL(i);
-            expdata.ACCs(i) = ACCs(i);
-            expdata.trialType(i) = trials(i).trialType;
-	    expdata.Lmean(i) = trials(i).Lmean;
-	    expdata.Rmean(i) = trials(i).Rmean;
-            save(datafile, 'expdata');  
-
-            postTrialStuffDoneYet = 1; % all intertrial business is finished
-        end  %% doing post-trial stuff
+          % 1. Give real-time feedback in the form of sounds, record accuracy data
+          if isnan(RTs(i))   % didn't respond in time  [we're characterizing response]
+              PsychPortAudio('FillBuffer', audiohandle,toneToolate);
+          elseif strcmp( trials(i).trialRightAnswers, meanEqualCode );  % trial has no right/wrong ans
+              % the means are actually equal. flip a coin to call it right or wrong
+              % note: accuracy is a lie here, but it saves WHAT WE TOLD THE SUBJECT!!
+              % FIXME: ideally, this would be standard for all subjects!!
+              if round(rand)  % coinflip = 1; call it right
+                  PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
+                  ACCs(i) = 1;
+              else  % call it wrong
+                  PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
+                  ACCs(i) = 0;
+              end  % if coin flip
+          elseif  strcmp(choices{i}, keymap.l) || strcmp(choices{i}, keymap.r)  % hit a valid key
+              if strcmp(choices{i}, keymap.(trials(i).trialRightAnswers)) % response was right
+                  PsychPortAudio('FillBuffer', audiohandle,toneCorrect);
+                  ACCs(i) = 1;
+              else      % response was the wrong side
+                  PsychPortAudio('FillBuffer', audiohandle,toneIncorrect);
+                  ACCs(i) = 0;
+              end  %-- if response was right
+          else  % hit an invalid key.  Note: ACCs(i) should stay NaN as initialized
+              PsychPortAudio('FillBuffer', audiohandle,toneToolate);  % FIXME: giving too-late feedback ok?
+          end  %-- isnan  (characterize response)
+          PsychPortAudio('Start',audiohandle);  % play feedback (program keeps going, i think)
+          
+          % 3. Record data for experimental parameters in .mat
+          expdata.trial(i) = i;
+          expdata.veridical(i) = trials(i).trialRightAnswers;
+          expdata.RTs(i) = RTs(i);
+          expdata.choices{i} = choices{i};
+          expdata.afcL(i) = afcL(i);
+          expdata.ACCs(i) = ACCs(i);
+          expdata.trialType(i) = trials(i).trialType;
+          expdata.Lmean(i) = trials(i).Lmean;
+          expdata.Rmean(i) = trials(i).Rmean;
+          save(datafile, 'expdata');
+          
+          postTrialStuffDoneYet = 1; % all intertrial business is finished
+      end  %% doing post-trial stuff
 
     end  %% waiting in ITI
 end  %% main trial loop
@@ -269,7 +267,7 @@ end  %% main trial loop
 % Inform subjects that experiment is over, shutdown everything
 endDisplay = ['The block is over.\n\n'...
                 'Please rest now, and restart when ready.'];
-DrawFormattedText(w, endDisplay, 'center', 'center', TextColors{1});
+DrawFormattedText(w, endDisplay, 'center', 'center', white);
 Screen('Flip', w);
 WaitSecs(2);
 ShutdownNicely(shutdown);  % Close the program
